@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cbergoon/merkletree"
 )
 
 // LinkedList Structure that will be used to store blocks
@@ -27,6 +28,7 @@ type Transaction struct {
 	signature []byte // from MerkleTree library
 	data      []byte
 }
+
 
 func main() {
 	fmt.Println("Test.")
