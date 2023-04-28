@@ -1,6 +1,10 @@
 package blockchain
 
 import (
+	"math/big"
+	"time"
+	"crypto/sha256"
+
 	"github.com/cbergoon/merkletree"
 )
 
@@ -49,29 +53,71 @@ type Transaction struct {
 	data      []byte
 }
 
-func (block *Block) getTimestamp() int64 {
+func (Block Block) CalculateHash(nonce int) ([]byte, error) {
+	hash := sha256.New()
+	data := Block.InitNonce(nonce)
+
+	if _, err := hash.Write(data); err != nil {
+		return nil, err
+	}
+
+	return hash.Sum(nil), nil
+}
+
+//Equals tests for equality of two Contents
+func (block Block) Equals(other merkletree.Content) (bool, error) {
+	return block.data == other.(Block).data, nil
+}
+
+
+func (block *Block) GetTimestamp() int64 {
 	return block.header.timestamp
 }
 
-func (block *Block) getHeader() BlockHeader {
+func (block *Block) GetHeader() BlockHeader {
 	return block.header
 }
 
-func (block *Block) getParentBlockHash() []byte {
+func (block *Block) GetParentBlockHash() []byte {
 	return block.header.parentBlockHash
 }
 
-func (block *Block) getHash() []byte {
+func (block *Block) GetHash() []byte {
 	return block.header.hash
 }
 
-func (block *Block) getNonce() uint64 {
+func (block *Block) GetNonce() uint64 {
 	return block.header.nonce
 }
 
-func (block *Block) getData() *merkletree.MerkleTree {
+func (block *Block) GetData() *merkletree.MerkleTree {
 	return block.data
 }
+
+func (block *Block) GetTarget() *big.Int {
+	return block.pow.target
+}
+
+// NewBlockChain creates a new block
+//
+func MakeBlock(pBlockHash []byte) *Block {
+	header := &BlockHeader {
+		timestamp: time.Now().UnixNano(),
+		parentBlockHash: pBlockHash,
+		hash: []byte{}, // empty hash that will be set 
+		nonce: 0,
+	}
+
+	block := &Block {
+		header: *header,
+		//data: merkletree.NewTree(),
+		pow: NewPOW(),
+	}
+
+	return block
+}
+
+
 
 
 
