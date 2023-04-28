@@ -1,0 +1,188 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"strconv"
+
+	blockchain "github.com/Lqvendar/blockchain/blockchain"
+	"github.com/cbergoon/merkletree"
+)
+
+func main() {
+	fmt.Println("Blockchain")
+	fmt.Println("-----------")
+	block := blockchain.MakeBlock([]byte{})
+
+	// Testing the getters of a block
+	fmt.Println("Testing blockheader (not including parentblockchash and hash)")
+	fmt.Println("Nonce: " + strconv.Itoa(int(block.GetNonce())))
+	fmt.Println("Timestamp: " + strconv.Itoa(int(block.GetTimestamp())))
+	fmt.Println()
+
+	// Testing Equals() of transactions
+	t := blockchain.Transaction{
+		Sender:    []byte("sender"),
+		Recipient: []byte("recipient"),
+		Timestamp: 1682708458208064000,
+		Data:      []byte("data"),
+	}
+
+	t2 := blockchain.Transaction{
+		Sender:    []byte("sender"),
+		Recipient: []byte("recipient"),
+		Timestamp: 1682708458208064000,
+		Data:      []byte("data"),
+	}
+
+	t3 := blockchain.Transaction{
+		Sender:    []byte("sender"),
+		Recipient: []byte("recipient"),
+		Timestamp: 0,
+		Data:      []byte("data"),
+	}
+
+	fmt.Println("-----------")
+	fmt.Println("Testing Equals() of transactions")
+	boolean, _ := t.Equals(t2)
+	fmt.Println("Should return true: " + strconv.FormatBool(boolean))
+	boolean2, _ := t.Equals(t3)
+	fmt.Println("Should return false: " + strconv.FormatBool(boolean2))
+	fmt.Println()
+
+	// Testing how to append transactions to data (MerkleTree)
+	var list []merkletree.Content
+	list = append(list, t)
+	list = append(list, t3)
+	list = append(list, t2)
+
+	// create a new Merkle Tree from the list of transactions
+	tree, err := merkletree.NewTree(list)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Verify the entire tree (hashes for each node) is valid
+	vt, err := tree.VerifyTree()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("-----------")
+	fmt.Println("Testing VerifyTree()")
+	fmt.Println("Should return true: ", vt)
+	fmt.Println()
+
+	//Verify a specific content in in the tree
+	vc, err := tree.VerifyContent(t)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("-----------")
+	fmt.Println("Testing VerifyContent()...")
+	fmt.Println("Should return true (because \"t\" should be in the MerkleTree): ", vc)
+	fmt.Println()
+
+	// Prints out in order: leaf (bool), duplicate (bool), hash ([]byte), content (interface)
+	// Prints out
+	fmt.Println("-----------")
+	fmt.Println("Printing out string representation of the MerkleTree of transactions")
+	fmt.Println(tree.String())
+	fmt.Println("Getting MerkleRoot of the MerkleTree")
+	fmt.Println("Should return the hash : ", tree.MerkleRoot())
+	fmt.Println()
+
+	//--------------------------------- creating new transactions ---------------------------------//
+	trans1 := blockchain.Transaction{
+		Sender:    []byte("s1"),
+		Recipient: []byte("r1"),
+		Timestamp: 1682708458208064001,
+		Data:      []byte("data1"),
+	}
+	trans2 := blockchain.Transaction{
+		Sender:    []byte("s2"),
+		Recipient: []byte("r2"),
+		Timestamp: 1682708458208064002,
+		Data:      []byte("data2"),
+	}
+	trans3 := blockchain.Transaction{
+		Sender:    []byte("s3"),
+		Recipient: []byte("r3"),
+		Timestamp: 1682708458208064003,
+		Data:      []byte("data3"),
+	}
+	trans4 := blockchain.Transaction{
+		Sender:    []byte("s4"),
+		Recipient: []byte("r4"),
+		Timestamp: 1682708458208064004,
+		Data:      []byte("data4"),
+	}
+
+	var newList []merkletree.Content
+	newList = append(newList, trans1)
+	newList = append(newList, trans2)
+	newList = append(newList, trans3)
+
+	// create a new Merkle Tree from the list of transactions
+	newTree, errrrrrr := merkletree.NewTree(newList)
+	if errrrrrr != nil {
+		log.Fatal(errrrrrr)
+	}
+
+	// testing verify
+	verify, err := newTree.VerifyTree()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Testing GetMerklePath()
+	fmt.Println("-----------")
+	fmt.Println("Verifying newTree: " + strconv.FormatBool(verify))
+	fmt.Println("String representation of newTree: " + newTree.String())
+	fmt.Println()
+
+	fmt.Println("Testing GetMerklePath() of trans1")
+	path, indices, _ := newTree.GetMerklePath(trans1)
+	fmt.Println("Should return the path of trans1: ", path, indices)
+
+	fmt.Println("Testing GetMerklePath() of trans2")
+	path2, indices2, _ := newTree.GetMerklePath(trans2)
+	fmt.Println("Should return the path of trans2: ", path2, indices2)
+
+	fmt.Println("Testing GetMerklePath() of trans3")
+	path3, indices3, _ := newTree.GetMerklePath(trans3)
+	fmt.Println("Should return the path of trans3: ", path3, indices3)
+	fmt.Println()
+
+	// Testing RebuildTreeWith() with trans4
+	// RebuildTreeWith() just rebuilds the tree after adding a new transaction and will keep the same hashes for the previous leaves
+	fmt.Println("-----------")
+	newList = append(newList, trans4)
+	// create a new Merkle Tree from the list of transactions
+	evenNewerTree, err100 := merkletree.NewTree(newList)
+	if err100 != nil {
+		log.Fatal(err100)
+	}
+	fmt.Println("String representation of evenNewerTree: ")
+	fmt.Println(evenNewerTree.String())
+
+
+	//--------------------------------- testing creating transactions and setting max within a block ---------------------------------//
+	newBlock := blockchain.MakeBlock([]byte{})
+	blockchain.SetMax(1)
+	newBlock.AddTransaction(trans1)
+	newBlock.AddTransaction(trans2) // should not be added
+ 
+	fmt.Println("-----------")
+	fmt.Println("Testing AddTransaction() to a block")
+	fmt.Println("String representation of newBlock: ")
+	fmt.Println(newBlock.GetData().String()) // will return a duplicate of trans 1
+	
+	
+
+	/*
+		nonce, hash := block.Run()
+		fmt.Println("Testing Run():")
+		fmt.Println("Nonce: " + strconv.Itoa(nonce))
+		fmt.Println("Hash: " + string(hash))
+	*/
+}

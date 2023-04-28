@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/big"
 	"math"
-	"crypto/sha256"
 )
 
 // Inspired by Noah Hein's "Building a Blockchain in Go PT:II - Proof of Work"
@@ -44,12 +43,12 @@ func ToHex(num int64) []byte {
 
 // Takes nonce, timestamps, parentBlockHash, and root hash of the transaction Merkle Tree
 // Returns []byte for Nonce
-func (block *Block) InitNonce(nonce int) []byte {
+func (block *Block) BlockDataToBytes() []byte {
 	data := bytes.Join(
 		[][]byte{
 			block.header.parentBlockHash,
 			block.GetData().Root.Tree.MerkleRoot(), // root hash of merkle tree
-			ToHex(int64(nonce)),
+			ToHex(int64(block.GetNonce())),
 			ToHex(int64(difficulty)),
 		},
 		[]byte{},
@@ -59,15 +58,15 @@ func (block *Block) InitNonce(nonce int) []byte {
 
 
 // reimpliment this using Merkle Tree interface
-// need to implement CalculateHash()
+// need to implement CalculateHash
 func (block *Block) Run() (int, []byte) {
 	var intHash big.Int
-	var hash []byte
+	var hash [32]byte
 
 	nonce := 0
 
 	for nonce < math.MaxInt64 {
-		hash, _ = block.CalculateHash(nonce)
+		hash, _ := block.CalculateHash()
 
 		fmt.Printf("\r%x", hash)
 		intHash.SetBytes(hash[:])
@@ -81,18 +80,18 @@ func (block *Block) Run() (int, []byte) {
 			break
 		} else {
 			nonce++
+			block.SetNonce(uint64(nonce))
 		}
 	}
 
 	return nonce, hash[:] /// [:] makes a slice of the array
 }
 
+// Might not need to use, have "VerifyContent" in MerkleTree package
 func (block *Block) Validate() bool {
     var intHash big.Int
+	hash, _ := block.CalculateHash()
 
-    data := block.InitNonce(int(block.GetNonce()))
-
-    hash := sha256.Sum256(data)
     intHash.SetBytes(hash[:])
 
     return intHash.Cmp(block.GetTarget()) == -1

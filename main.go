@@ -1,22 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
+	//"fmt"
+	//"strconv"
 
-	blockchain "github.com/Lqvendar/blockchain/blockchain"
+	//blockchain "github.com/Lqvendar/blockchain/blockchain"
 )
 
+/*
 func main() {
 	fmt.Println("Blockchain")
-	fmt.Println("-----------")
-	block := blockchain.MakeBlock([]byte{})
+	
 
-	// Testing the getters of a block
-	fmt.Println("Data:")
-	fmt.Println("Nonce: " + strconv.Itoa(int(block.GetNonce())))
-	fmt.Println("Timestamp: " + strconv.Itoa(int(block.GetTimestamp())))
-
+	
+	nonce, hash := block.Run()
+	fmt.Println("Testing Run():")
+	fmt.Println("Nonce: " + strconv.Itoa(nonce))
+	fmt.Println("Hash: " + string(hash))
+	
 
 
 	// Nodes are connected are connected in the network
@@ -29,4 +30,5 @@ func main() {
 		// 
 
 }
+*/
 
