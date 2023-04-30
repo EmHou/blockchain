@@ -22,6 +22,8 @@ type ProofOfWork struct {
 }
 
 // Hein states: The closer we get to 256, the easier the computation will be. Increasing our difficulty will increase the runtime of our algorithm
+// Lsh() is a left shift, which is a bitwise operation
+// sets z = x << n and returns z
 func NewPOW() *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-difficulty)) // left shift

@@ -193,7 +193,7 @@ func testMerkleTree() {
 func testAddTransactionsAndMine() {
 	fmt.Println("-----------")
 
-	newBlock := blockchain.MakeBlock([]byte{})
+	newBlock := blockchain.MakeBlock([]byte{0})
 	blockchain.SetMax(1)
 	newBlock.AddTransaction(trans1)
 	newBlock.AddTransaction(trans2) // should not be added
@@ -204,13 +204,21 @@ func testAddTransactionsAndMine() {
 	fmt.Println()
 	fmt.Println("-----------")
 
-	fmt.Println("Testing Run() of a block (mining)")
+	fmt.Println("Testing Mine()")
 	nonce, _ := newBlock.Mine()
-	fmt.Println()
 	fmt.Println("Nonce: " + strconv.Itoa(nonce))
 	fmt.Printf("Set hash in block: %x", newBlock.GetHash())
 
 	fmt.Println()
+	fmt.Println()
+}
+
+func testNewBlockChain() {
+	fmt.Println("-----------")
+	fmt.Println("Testing NewBlockChain()")
+	chain := blockchain.NewBlockChain()
+	fmt.Println("String representation of chain: ")
+	fmt.Println(chain.String())
 }
 
 func main() {
@@ -234,4 +242,5 @@ func main() {
 	// Testing AddTransaction() to a block and Run()
 	testAddTransactionsAndMine()
 
+	testNewBlockChain()
 }

@@ -6,19 +6,13 @@ import (
 	"log"
 	"math/big"
 	"time"
+	"strconv"
+	"encoding/hex"
 
 	"github.com/cbergoon/merkletree"
 )
 
 var max int = 7
-
-// BlockChain structure links together blocks in a Merkle Tree.
-// currentBlock		block that is being filled up with transactions has NOT been added to the chain yet
-// chain			chain of blocks that have been added to the chain
-type BlockChain struct {
-	currentBlock *Block
-	chain        *merkletree.MerkleTree
-}
 
 // Includes helper methods that allow easy access to find parentBlockHash, hash, and nonce.
 // Arbitrary number of transactions - in this implemenation, we choose 7 transactions per block.
@@ -132,6 +126,26 @@ func MakeBlock(pBlockHash []byte) *Block {
 	return block
 }
 
+// Takes MakeBlock() and passes empty byte array to it
+// Has no parent block, so parentBlockHash is empty (empty byte array)
+func MakeGenesisBlock() *Block {
+	genesis := MakeBlock([]byte{})
+
+	for i := 0; i < max; i++ {
+		emptyTransaction := Transaction{
+			Sender:    []byte{},
+			Recipient: []byte{},
+			Timestamp: time.Now().UnixNano(),
+			Data:      []byte("init"),
+		}
+
+		genesis.AddTransaction(emptyTransaction)
+	}
+	genesis.Mine()
+
+	return genesis
+}
+
 // AddTransaction is of type Block and takes paramater of type Transaction.
 // Checks if the block is full (var max transactions, arbitrarily set) and if it is, prints error message.
 // If the transaction MerkleTree is empty, creates a new Merkle Tree with the transaction.
@@ -159,6 +173,25 @@ func (block *Block) AddTransaction(transaction Transaction) {
 	}
 
 }
+
+func (block Block) String() string {
+	str := "**Block**\n"
+	str += block.header.String()
+	str += "Data (String representation of Transactions Merkle Tree):\n"
+	str += block.data.String() + "\n"
+
+	return str
+}
+
+func (header *BlockHeader) String() string {
+	str := "Timestamp: " + strconv.FormatInt(header.timestamp, 10) + "\n"
+	str += "Parent Block Hash: " + hex.EncodeToString(header.parentBlockHash) + "\n"
+	str += "Hash: " + hex.EncodeToString(header.hash) + "\n"
+
+	return str
+}
+
+
 
 //-- Notes --//
 
