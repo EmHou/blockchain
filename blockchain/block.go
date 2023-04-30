@@ -61,6 +61,10 @@ func (block *Block) GetHash() []byte {
 	return block.header.hash
 }
 
+func (block *Block) SetHash(hash []byte) {
+	block.header.hash = hash
+}
+
 func (block *Block) GetNonce() uint64 {
 	return block.header.nonce
 }

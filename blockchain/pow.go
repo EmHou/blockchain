@@ -59,7 +59,7 @@ func (block *Block) BlockDataToBytes() []byte {
 
 // reimpliment this using Merkle Tree interface
 // need to implement CalculateHash
-func (block *Block) Run() (int, []byte) {
+func (block *Block) Mine() (int, [32]byte) {
 	var intHash big.Int
 	var hash [32]byte
 
@@ -68,7 +68,11 @@ func (block *Block) Run() (int, []byte) {
 	for nonce < math.MaxInt64 {
 		hash, _ := block.CalculateHash()
 
-		fmt.Printf("\r%x", hash)
+		// prints out all the hashes
+		/*
+		fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
+		 fmt.Println()
+		 */
 		intHash.SetBytes(hash[:])
 
 		// if intHash < target, then we have found a valid hash
@@ -77,14 +81,18 @@ func (block *Block) Run() (int, []byte) {
 		// 0 if x == y
 		// +1 if x > y
 		if intHash.Cmp(block.GetTarget()) == -1 {
+			//fmt.Printf("%x", hash)
+			block.SetHash(hash)
+			fmt.Printf("Hash has been set: %x", hash)
 			break
 		} else {
 			nonce++
 			block.SetNonce(uint64(nonce))
 		}
 	}
+	fmt.Println()
 
-	return nonce, hash[:] /// [:] makes a slice of the array
+	return nonce, hash
 }
 
 // Might not need to use, have "VerifyContent" in MerkleTree package

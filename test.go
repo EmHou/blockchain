@@ -66,7 +66,7 @@ func testGetters() {
 	fmt.Println("Testing blockheader (not including parentblockchash and hash)")
 	fmt.Println("Nonce: " + strconv.Itoa(int(block.GetNonce())))
 	fmt.Println("Timestamp: " + strconv.Itoa(int(block.GetTimestamp())))
-	
+
 	fmt.Println()
 }
 
@@ -189,7 +189,8 @@ func testMerkleTree() {
 
 // Tests adding transactions to a block
 // Tests if maximum transactions in a block is 1 (because of SetMax(1))
-func testAddTransactions() {
+// Testing Mine() (finding nonce and setting hash)
+func testAddTransactionsAndMine() {
 	fmt.Println("-----------")
 
 	newBlock := blockchain.MakeBlock([]byte{})
@@ -199,6 +200,15 @@ func testAddTransactions() {
 	fmt.Println("Testing AddTransaction() to a block")
 	fmt.Println("String representation of newBlock: ")
 	fmt.Println(newBlock.GetData().String()) // will return a duplicate of trans 1
+
+	fmt.Println()
+	fmt.Println("-----------")
+
+	fmt.Println("Testing Run() of a block (mining)")
+	nonce, _ := newBlock.Mine()
+	fmt.Println()
+	fmt.Println("Nonce: " + strconv.Itoa(nonce))
+	fmt.Printf("Set hash in block: %x", newBlock.GetHash())
 
 	fmt.Println()
 }
@@ -221,13 +231,7 @@ func main() {
 	// This is to understand how Merkle trees work and how to use the functions
 	testMerkleTree()
 
-	// Testing AddTransaction() to a block
-	testAddTransactions()
+	// Testing AddTransaction() to a block and Run()
+	testAddTransactionsAndMine()
 
-	/*
-		nonce, hash := block.Run()
-		fmt.Println("Testing Run():")
-		fmt.Println("Nonce: " + strconv.Itoa(nonce))
-		fmt.Println("Hash: " + string(hash))
-	*/
 }
