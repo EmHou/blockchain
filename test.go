@@ -9,46 +9,87 @@ import (
 	"github.com/cbergoon/merkletree"
 )
 
-func main() {
+var t = blockchain.Transaction{
+	Sender:    []byte("sender"),
+	Recipient: []byte("recipient"),
+	Timestamp: 1682708458208064000,
+	Data:      []byte("data"),
+}
+
+var t2 = blockchain.Transaction{
+	Sender:    []byte("sender"),
+	Recipient: []byte("recipient"),
+	Timestamp: 1682708458208064000,
+	Data:      []byte("data"),
+}
+
+var t3 = blockchain.Transaction{
+	Sender:    []byte("sender"),
+	Recipient: []byte("recipient"),
+	Timestamp: 0,
+	Data:      []byte("data"),
+}
+
+var trans1 = blockchain.Transaction{
+	Sender:    []byte("s1"),
+	Recipient: []byte("r1"),
+	Timestamp: 1682708458208064001,
+	Data:      []byte("data1"),
+}
+var trans2 = blockchain.Transaction{
+	Sender:    []byte("s2"),
+	Recipient: []byte("r2"),
+	Timestamp: 1682708458208064002,
+	Data:      []byte("data2"),
+}
+var trans3 = blockchain.Transaction{
+	Sender:    []byte("s3"),
+	Recipient: []byte("r3"),
+	Timestamp: 1682708458208064003,
+	Data:      []byte("data3"),
+}
+var trans4 = blockchain.Transaction{
+	Sender:    []byte("s4"),
+	Recipient: []byte("r4"),
+	Timestamp: 1682708458208064004,
+	Data:      []byte("data4"),
+}
+
+// Tests the getters of a block
+func testGetters() {
 	fmt.Println("Blockchain")
 	fmt.Println("-----------")
+
 	block := blockchain.MakeBlock([]byte{})
 
 	// Testing the getters of a block
 	fmt.Println("Testing blockheader (not including parentblockchash and hash)")
 	fmt.Println("Nonce: " + strconv.Itoa(int(block.GetNonce())))
 	fmt.Println("Timestamp: " + strconv.Itoa(int(block.GetTimestamp())))
+	
 	fmt.Println()
+}
 
-	// Testing Equals() of transactions
-	t := blockchain.Transaction{
-		Sender:    []byte("sender"),
-		Recipient: []byte("recipient"),
-		Timestamp: 1682708458208064000,
-		Data:      []byte("data"),
-	}
-
-	t2 := blockchain.Transaction{
-		Sender:    []byte("sender"),
-		Recipient: []byte("recipient"),
-		Timestamp: 1682708458208064000,
-		Data:      []byte("data"),
-	}
-
-	t3 := blockchain.Transaction{
-		Sender:    []byte("sender"),
-		Recipient: []byte("recipient"),
-		Timestamp: 0,
-		Data:      []byte("data"),
-	}
-
+// Tests Equals() of transactions
+func testEquals() {
 	fmt.Println("-----------")
+
 	fmt.Println("Testing Equals() of transactions")
 	boolean, _ := t.Equals(t2)
 	fmt.Println("Should return true: " + strconv.FormatBool(boolean))
 	boolean2, _ := t.Equals(t3)
 	fmt.Println("Should return false: " + strconv.FormatBool(boolean2))
+
 	fmt.Println()
+}
+
+// Tests transaction Merkle Tree
+// Creates Merle Tree of transactions
+// Verifies hashes of entire Merkle Tree
+// Verifies a specific transaction is in the Merkle Tree
+// Prints out string representation of the Merkle Tree
+func testTransactionTree() {
+	fmt.Println("-----------")
 
 	// Testing how to append transactions to data (MerkleTree)
 	var list []merkletree.Content
@@ -67,7 +108,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("-----------")
 	fmt.Println("Testing VerifyTree()")
 	fmt.Println("Should return true: ", vt)
 	fmt.Println()
@@ -89,34 +129,14 @@ func main() {
 	fmt.Println(tree.String())
 	fmt.Println("Getting MerkleRoot of the MerkleTree")
 	fmt.Println("Should return the hash : ", tree.MerkleRoot())
+
 	fmt.Println()
+}
 
-	//--------------------------------- creating new transactions ---------------------------------//
-	trans1 := blockchain.Transaction{
-		Sender:    []byte("s1"),
-		Recipient: []byte("r1"),
-		Timestamp: 1682708458208064001,
-		Data:      []byte("data1"),
-	}
-	trans2 := blockchain.Transaction{
-		Sender:    []byte("s2"),
-		Recipient: []byte("r2"),
-		Timestamp: 1682708458208064002,
-		Data:      []byte("data2"),
-	}
-	trans3 := blockchain.Transaction{
-		Sender:    []byte("s3"),
-		Recipient: []byte("r3"),
-		Timestamp: 1682708458208064003,
-		Data:      []byte("data3"),
-	}
-	trans4 := blockchain.Transaction{
-		Sender:    []byte("s4"),
-		Recipient: []byte("r4"),
-		Timestamp: 1682708458208064004,
-		Data:      []byte("data4"),
-	}
-
+// Tests GetMerklePath() and RebuildTreeWith()
+// This is to understand how Merkle trees work and how to use the functions
+func testMerkleTree() {
+	fmt.Println("-----------")
 	var newList []merkletree.Content
 	newList = append(newList, trans1)
 	newList = append(newList, trans2)
@@ -135,7 +155,6 @@ func main() {
 	}
 
 	// Testing GetMerklePath()
-	fmt.Println("-----------")
 	fmt.Println("Verifying newTree: " + strconv.FormatBool(verify))
 	fmt.Println("String representation of newTree: " + newTree.String())
 	fmt.Println()
@@ -165,19 +184,45 @@ func main() {
 	fmt.Println("String representation of evenNewerTree: ")
 	fmt.Println(evenNewerTree.String())
 
+	fmt.Println()
+}
 
-	//--------------------------------- testing creating transactions and setting max within a block ---------------------------------//
+// Tests adding transactions to a block
+// Tests if maximum transactions in a block is 1 (because of SetMax(1))
+func testAddTransactions() {
+	fmt.Println("-----------")
+
 	newBlock := blockchain.MakeBlock([]byte{})
 	blockchain.SetMax(1)
 	newBlock.AddTransaction(trans1)
 	newBlock.AddTransaction(trans2) // should not be added
- 
-	fmt.Println("-----------")
 	fmt.Println("Testing AddTransaction() to a block")
 	fmt.Println("String representation of newBlock: ")
 	fmt.Println(newBlock.GetData().String()) // will return a duplicate of trans 1
-	
-	
+
+	fmt.Println()
+}
+
+func main() {
+	// Testing the getters of a block
+	testGetters()
+
+	// Testing Equals() of transactions
+	testEquals()
+
+	// Testing transaction Merkle Tree
+	// Creates Merle Tree of transactions
+	// Verifies hashes of entire Merkle Tree
+	// Verifies a specific transaction is in the Merkle Tree
+	// Prints out string representation of the Merkle Tree
+	testTransactionTree()
+
+	// Testing GetMerklePath() and RebuildTreeWith()
+	// This is to understand how Merkle trees work and how to use the functions
+	testMerkleTree()
+
+	// Testing AddTransaction() to a block
+	testAddTransactions()
 
 	/*
 		nonce, hash := block.Run()
