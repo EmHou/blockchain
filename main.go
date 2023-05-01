@@ -16,10 +16,6 @@ import (
 func main() {
 
 	arguments := os.Args
-	if len(arguments) == 1 {
-		fmt.Println("Please provide cluster information.")
-		return
-	}
 
 	myID, err := strconv.Atoi(arguments[1])
 	node := connection.MakeNode(myID)
