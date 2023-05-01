@@ -59,8 +59,9 @@ func (block *Block) BlockDataToBytes() []byte {
 }
 
 
-// reimpliment this using Merkle Tree interface
-// need to implement CalculateHash
+// Mining of the block.
+// Gets a specific hash that is less than the target hash
+// Returns nonce and hash
 func (block *Block) Mine() (int, [32]byte) {
 	var intHash big.Int
 	var hash [32]byte

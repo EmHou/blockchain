@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	//"sync"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
 	"github.com/cbergoon/merkletree"
@@ -213,14 +214,53 @@ func testAddTransactionsAndMine() {
 	fmt.Println()
 }
 
-func testNewBlockChain() {
+func testNewBlockChain() blockchain.BlockChain{
 	fmt.Println("-----------")
 	fmt.Println("Testing NewBlockChain()")
 	chain := blockchain.NewBlockChain()
 	fmt.Println("String representation of chain: ")
 	fmt.Println(chain.String())
+
+	fmt.Println("-----------")
+	fmt.Println("Testing AddBlock()")
+	blockchain.SetMax(7)
+	block := blockchain.MakeBlock([]byte{0})
+	block.AddTransaction(trans1)
+	block.AddTransaction(trans2)
+	block.AddTransaction(trans3)
+	block.AddTransaction(trans4)
+	block.AddTransaction(t)
+	block.AddTransaction(t2)
+	//block.AddTransaction(t3)
+
+	chain.AddBlock(block)
+	fmt.Println()
+	fmt.Println("Should not add to chain because not at max transactions:")
+	fmt.Println(chain.String())
+
+	return *chain
 }
 
+func testAddingCorrectBlock(chain *blockchain.BlockChain) {
+	fmt.Println("-----------")
+	fmt.Println("Testing AddBlock() with correct block")
+	goodBlock := blockchain.MakeBlock(chain.GetRoot().GetParentBlockHash())
+	goodBlock.AddTransaction(trans1)
+	goodBlock.AddTransaction(trans2)
+	goodBlock.AddTransaction(trans3)
+	goodBlock.AddTransaction(trans4)
+	goodBlock.AddTransaction(t)
+	goodBlock.AddTransaction(t2)
+	goodBlock.AddTransaction(t3)
+
+	chain.AddBlock(goodBlock)
+
+	fmt.Println("Should add to chain because correct block:")
+	fmt.Println(chain.String())
+	fmt.Println()
+}
+
+/*
 func main() {
 	// Testing the getters of a block
 	testGetters()
@@ -241,6 +281,14 @@ func main() {
 
 	// Testing AddTransaction() to a block and Run()
 	testAddTransactionsAndMine()
+	chain := testNewBlockChain()
 
-	testNewBlockChain()
+	testAddingCorrectBlock(&chain) // & refers to where the variable is located in memory
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go chain.RunVerification()
+	wg.Wait()
+
 }
+*/

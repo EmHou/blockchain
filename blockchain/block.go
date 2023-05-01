@@ -75,8 +75,16 @@ func (block *Block) GetTarget() *big.Int {
 	return block.pow.target
 }
 
+func (block *Block) GetDataList() []merkletree.Content {
+	return block.dataList
+}
+
 func SetMax(maxiumum int) {
 	max = maxiumum
+}
+
+func GetMax() int {
+	return max
 }
 
 // Part of the Content interface in MerkleTree Package.
