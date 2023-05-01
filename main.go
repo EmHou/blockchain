@@ -28,6 +28,12 @@ type Node struct {
 	//wg    sync.WaitGroup
 }
 
+// needs a function to register to RPC?
+func (node *Node) Test(arguments Node, reply *Node) error {
+	fmt.Println("test")
+	return nil
+}
+
 func MakeNode(i int) *Node {
 	node := new(Node)
 	node.ID = i
@@ -43,6 +49,8 @@ func (node *Node) ConnectNodes() error {
 	selfAddress := node.Self.Address
 	peerNodes := node.PeerNodes
 	node.mutex.Unlock()
+
+	fmt.Println(selfAddress)
 
 	go http.ListenAndServe(selfAddress, nil)
 	log.Printf("Serving rpc on: " + selfAddress)
@@ -122,13 +130,36 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = rpc.Register(api)
-	fmt.Println(strconv.Itoa(myID) + " up!")
+	fmt.Println("Node " + strconv.Itoa(myID) + " up!")
 	if err != nil {
-		log.Fatal("error registering the RPCs", err)
+		log.Fatal("error registering the RPCs\n", err)
 	}
-	//api.ReadClusterConfig(arguments[2])
-	//api.ConnectNodes()
+
+	api.ReadClusterConfig("nodes.txt")
+
+	// nodes connect now
+	api.ConnectNodes()
 
 	time.Sleep(8 * time.Second)
+
+	// create new scanner to read input from command line
+	// transaction data goes here
+	for {
+		fmt.Println("What would you like to send?: ")
+		reader := bufio.NewScanner(os.Stdin)
+		reader.Scan()
+		data := reader.Text()
+		fmt.Println(data)
+
+		// make transaction from data
+		// maybe put this somewhere else?
+		// transaction := blockchain.Transaction{
+		// 	Sender:    api.Self.Address,
+		// 	Recipient: api.PeerNodes[1],
+		// 	Timestamp: time.Now().UnixNano(),
+		// 	Data:      data,
+		// }
+	}
 }
