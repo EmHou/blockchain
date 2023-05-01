@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"bufio"
 	"fmt"
@@ -12,7 +13,9 @@ import (
 
 	connection "github.com/Lqvendar/blockchain/node"
 )
+*/
 
+/*
 func main() {
 
 	arguments := os.Args
@@ -55,3 +58,4 @@ func main() {
 		// }
 	}
 }
+*/

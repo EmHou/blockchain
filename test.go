@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+
 	//"sync"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
@@ -57,7 +58,7 @@ var trans4 = blockchain.Transaction{
 }
 
 // Tests the getters of a block
-func testGetters() {
+func TestGetters() {
 	fmt.Println("Blockchain")
 	fmt.Println("-----------")
 
@@ -72,7 +73,7 @@ func testGetters() {
 }
 
 // Tests Equals() of transactions
-func testEquals() {
+func TestEquals() {
 	fmt.Println("-----------")
 
 	fmt.Println("Testing Equals() of transactions")
@@ -89,7 +90,7 @@ func testEquals() {
 // Verifies hashes of entire Merkle Tree
 // Verifies a specific transaction is in the Merkle Tree
 // Prints out string representation of the Merkle Tree
-func testTransactionTree() {
+func TestTransactionTree() {
 	fmt.Println("-----------")
 
 	// Testing how to append transactions to data (MerkleTree)
@@ -136,7 +137,7 @@ func testTransactionTree() {
 
 // Tests GetMerklePath() and RebuildTreeWith()
 // This is to understand how Merkle trees work and how to use the functions
-func testMerkleTree() {
+func TestMerkleTree() {
 	fmt.Println("-----------")
 	var newList []merkletree.Content
 	newList = append(newList, trans1)
@@ -191,7 +192,7 @@ func testMerkleTree() {
 // Tests adding transactions to a block
 // Tests if maximum transactions in a block is 1 (because of SetMax(1))
 // Testing Mine() (finding nonce and setting hash)
-func testAddTransactionsAndMine() {
+func TestAddTransactionsAndMine() {
 	fmt.Println("-----------")
 
 	newBlock := blockchain.MakeBlock([]byte{0})
@@ -214,7 +215,7 @@ func testAddTransactionsAndMine() {
 	fmt.Println()
 }
 
-func testNewBlockChain() blockchain.BlockChain{
+func TestNewBlockChain() blockchain.BlockChain {
 	fmt.Println("-----------")
 	fmt.Println("Testing NewBlockChain()")
 	chain := blockchain.NewBlockChain()
@@ -241,7 +242,7 @@ func testNewBlockChain() blockchain.BlockChain{
 	return *chain
 }
 
-func testAddingCorrectBlock(chain *blockchain.BlockChain) {
+func TestAddingCorrectBlock(chain *blockchain.BlockChain) {
 	fmt.Println("-----------")
 	fmt.Println("Testing AddBlock() with correct block")
 	goodBlock := blockchain.MakeBlock(chain.GetRoot().GetParentBlockHash())
@@ -260,35 +261,71 @@ func testAddingCorrectBlock(chain *blockchain.BlockChain) {
 	fmt.Println()
 }
 
+func TestMining() {
+	testMineBlock := blockchain.MakeBlock([]byte{0})
+	testMineBlock.AddTransaction(trans1)
+
+	testMineBlock.TestPOW(12)
+
+	testMineBlock.TestPrintMine()
+}
+
+// This is for the Blockchain presenation
+func main() {
+	// Testing the getters of a block
+	// Nonce set to 0
+	// Hash is not set yet because it will be set when mining
+	//TestGetters()
+
+	// Added three transactions to the block
+	// VerifyTree() verifies the hashes of the Merkle Tree
+	// VerifyContent() verifies if a specific transaction is in the Merkle Tree
+	// first boolean value: if it is in the block ()
+	// second boolean value: if it is a duplicate
+	// [] of numbers is the hash
+	// info of the block header
+	// TestTransactionTree()
+
+	// Setting max number of transactions in a block to 1 just for demonstration purposes
+	// Attempt to add two transactions into the block
+	// Only one transaction will be added because the max is 1
+	// In the string representation of the block, it will show the duplicate transaction (second boolean is true)
+	// Attempts to mine the block. After it's done mining, it will set the block's hash and nonce.
+	// TestAddTransactionsAndMine()
+
+	// Making a block and adding a transaction (max is still 1)
+	// 
+	TestMining()
+}
+
 /*
 func main() {
 	// Testing the getters of a block
-	testGetters()
+	TestGetters()
 
 	// Testing Equals() of transactions
-	testEquals()
+	TestEquals()
 
 	// Testing transaction Merkle Tree
 	// Creates Merle Tree of transactions
 	// Verifies hashes of entire Merkle Tree
 	// Verifies a specific transaction is in the Merkle Tree
 	// Prints out string representation of the Merkle Tree
-	testTransactionTree()
+	TestTransactionTree()
 
 	// Testing GetMerklePath() and RebuildTreeWith()
 	// This is to understand how Merkle trees work and how to use the functions
-	testMerkleTree()
+	TestMerkleTree()
 
 	// Testing AddTransaction() to a block and Run()
-	testAddTransactionsAndMine()
-	chain := testNewBlockChain()
+	TestAddTransactionsAndMine()
+	chain := TestNewBlockChain()
 
-	testAddingCorrectBlock(&chain) // & refers to where the variable is located in memory
+	TestAddingCorrectBlock(&chain) // & refers to where the variable is located in memory
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go chain.RunVerification()
 	wg.Wait()
-
 }
 */

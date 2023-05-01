@@ -33,6 +33,46 @@ func NewPOW() *ProofOfWork {
 	return pow
 }
 
+func (block *Block) TestPOW(newDiff int) {
+	target := big.NewInt(1)
+	target.Lsh(target, uint(256-newDiff)) // left shift
+
+	pow := &ProofOfWork{target}
+
+	block.pow = pow
+}
+
+func (block *Block) TestPrintMine() (int, [32]byte) {
+	var intHash big.Int
+	var hash [32]byte
+
+	nonce := 0
+
+	for nonce < math.MaxInt64 {
+		hash, _ := block.CalculateHash()
+
+		// prints out all the hashes
+		fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
+		fmt.Println()
+		 
+		intHash.SetBytes(hash[:])
+
+		if intHash.Cmp(block.GetTarget()) == -1 {
+			block.SetHash(hash)
+			fmt.Printf("Hash has been set: %x", hash)
+			break
+		} else {
+			nonce++
+			block.SetNonce(uint64(nonce))
+		}
+	}
+	fmt.Println()
+
+	return nonce, hash
+}
+
+
+
 // ToHex converts int64 to []byte
 func ToHex(num int64) []byte {
 	buff := new(bytes.Buffer)
