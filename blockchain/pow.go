@@ -24,6 +24,7 @@ type ProofOfWork struct {
 // Hein states: The closer we get to 256, the easier the computation will be. Increasing our difficulty will increase the runtime of our algorithm
 // Lsh() is a left shift, which is a bitwise operation
 // sets z = x << n and returns z
+// z = 1 * 2^T(256 - difficulty)
 func NewPOW() *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-difficulty)) // left shift
@@ -31,44 +32,6 @@ func NewPOW() *ProofOfWork {
 	pow := &ProofOfWork{target}
 
 	return pow
-}
-
-func (block *Block) TestPOW(newDiff int) {
-	target := big.NewInt(1)
-	target.Lsh(target, uint(256-newDiff)) // left shift
-
-	pow := &ProofOfWork{target}
-
-	block.pow = pow
-}
-
-func (block *Block) TestPrintMine() (int, [32]byte) {
-	var intHash big.Int
-	var hash [32]byte
-
-	nonce := 0
-
-	for nonce < math.MaxInt64 {
-		hash, _ := block.CalculateHash()
-
-		// prints out all the hashes
-		fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
-		fmt.Println()
-		 
-		intHash.SetBytes(hash[:])
-
-		if intHash.Cmp(block.GetTarget()) == -1 {
-			block.SetHash(hash)
-			fmt.Printf("Hash has been set: %x", hash)
-			break
-		} else {
-			nonce++
-			block.SetNonce(uint64(nonce))
-		}
-	}
-	fmt.Println()
-
-	return nonce, hash
 }
 
 
@@ -138,6 +101,45 @@ func (block *Block) Mine() (int, [32]byte) {
 	return nonce, hash
 }
 
+func (block *Block) TestPOW(newDiff int) {
+	target := big.NewInt(1)
+	target.Lsh(target, uint(256-newDiff)) // left shift
+
+	pow := &ProofOfWork{target}
+
+	block.pow = pow
+}
+
+func (block *Block) TestPrintMine() (int, [32]byte) {
+	var intHash big.Int
+	var hash [32]byte
+
+	nonce := 0
+
+	for nonce < math.MaxInt64 {
+		hash, _ := block.CalculateHash()
+
+		// prints out all the hashes
+		fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
+		fmt.Println()
+		 
+		intHash.SetBytes(hash[:])
+
+		if intHash.Cmp(block.GetTarget()) == -1 {
+			block.SetHash(hash)
+			fmt.Printf("Hash has been set: %x", hash)
+			break
+		} else {
+			nonce++
+			block.SetNonce(uint64(nonce))
+		}
+	}
+	fmt.Println()
+
+	return nonce, hash
+}
+
+/*
 // Might not need to use, have "VerifyContent" in MerkleTree package
 func (block *Block) Validate() bool {
     var intHash big.Int
@@ -147,3 +149,4 @@ func (block *Block) Validate() bool {
 
     return intHash.Cmp(block.GetTarget()) == -1
 }
+*/

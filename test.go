@@ -261,18 +261,18 @@ func TestAddingCorrectBlock(chain *blockchain.BlockChain) {
 	fmt.Println()
 }
 
-func TestMining() {
+func TestMining(difficulty int) {
 	testMineBlock := blockchain.MakeBlock([]byte{0})
 	testMineBlock.AddTransaction(trans1)
 
-	testMineBlock.TestPOW(12)
+	testMineBlock.TestPOW(difficulty)
 
 	testMineBlock.TestPrintMine()
 }
 
 // This is for the Blockchain presenation
 func main() {
-	// Testing the getters of a block
+	// Testing the creation of a block
 	// Nonce set to 0
 	// Hash is not set yet because it will be set when mining
 	//TestGetters()
@@ -280,22 +280,23 @@ func main() {
 	// Added three transactions to the block
 	// VerifyTree() verifies the hashes of the Merkle Tree
 	// VerifyContent() verifies if a specific transaction is in the Merkle Tree
-	// first boolean value: if it is in the block ()
+	// String representation of Merkle Tree
+	// first boolean value: if the content stored is a leaf
 	// second boolean value: if it is a duplicate
 	// [] of numbers is the hash
 	// info of the block header
-	// TestTransactionTree()
+	//TestTransactionTree()
 
 	// Setting max number of transactions in a block to 1 just for demonstration purposes
 	// Attempt to add two transactions into the block
 	// Only one transaction will be added because the max is 1
 	// In the string representation of the block, it will show the duplicate transaction (second boolean is true)
 	// Attempts to mine the block. After it's done mining, it will set the block's hash and nonce.
-	// TestAddTransactionsAndMine()
+	//TestAddTransactionsAndMine()
 
 	// Making a block and adding a transaction (max is still 1)
-	// 
-	TestMining()
+	// Prints out all the hashes that it tests with a changing nonce (nonce increases by 1 each time)
+	TestMining(18)
 }
 
 /*
