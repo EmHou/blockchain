@@ -2,12 +2,12 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
-	"time"
 	"strconv"
-	"encoding/hex"
+	"time"
 
 	"github.com/cbergoon/merkletree"
 )
@@ -182,6 +182,13 @@ func (block *Block) AddTransaction(transaction Transaction) {
 
 }
 
+// Function used to set parent hash
+// Used when first block is added to the blockchain after the genesis block.
+// Otherwise, the parent hash will be empty for this block, and it will not be added.
+func (block *Block) SetBlockParentHash(Hash []byte) {
+	block.header.parentBlockHash = Hash
+}
+
 func (block Block) String() string {
 	str := "**Block**\n"
 	str += block.header.String()
@@ -198,8 +205,6 @@ func (header *BlockHeader) String() string {
 
 	return str
 }
-
-
 
 //-- Notes --//
 

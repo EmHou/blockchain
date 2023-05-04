@@ -1,12 +1,12 @@
 package blockchain
 
 import (
-	"fmt"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"log"
-	"math/big"
 	"math"
+	"math/big"
 )
 
 // Inspired by Noah Hein's "Building a Blockchain in Go PT:II - Proof of Work"
@@ -34,8 +34,6 @@ func NewPOW() *ProofOfWork {
 	return pow
 }
 
-
-
 // ToHex converts int64 to []byte
 func ToHex(num int64) []byte {
 	buff := new(bytes.Buffer)
@@ -61,7 +59,6 @@ func (block *Block) BlockDataToBytes() []byte {
 	return data
 }
 
-
 // Mining of the block.
 // Gets a specific hash that is less than the target hash
 // Returns nonce and hash
@@ -76,13 +73,13 @@ func (block *Block) Mine() (int, [32]byte) {
 
 		// prints out all the hashes
 		/*
-		fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
-		 fmt.Println()
-		 */
+			fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
+			fmt.Println()
+		*/
 		intHash.SetBytes(hash[:])
 
 		// if intHash < target, then we have found a valid hash
-		// Cmp compares x and y and returns: 
+		// Cmp compares x and y and returns:
 		// -1 if x < y
 		// 0 if x == y
 		// +1 if x > y
@@ -122,7 +119,7 @@ func (block *Block) TestPrintMine() (int, [32]byte) {
 		// prints out all the hashes
 		fmt.Printf("\r%x", hash) // \r is carriage return, %x is hex
 		fmt.Println()
-		 
+
 		intHash.SetBytes(hash[:])
 
 		if intHash.Cmp(block.GetTarget()) == -1 {

@@ -2,10 +2,10 @@ package blockchain
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"sync"
 	"time"
-	"fmt"
 
 	"github.com/cbergoon/merkletree"
 )
@@ -43,6 +43,7 @@ func NewBlockChain() *BlockChain {
 	return blockChain
 }
 
+// Gets the root of the blockchain.
 func (blockChain *BlockChain) GetRoot() *Block {
 	return blockChain.root
 }
@@ -85,7 +86,7 @@ func (blockChain *BlockChain) RunVerification() {
 	timer := time.NewTimer(300 * time.Millisecond)
 
 	for {
-		<- timer.C
+		<-timer.C
 		check, err := blockChain.chain.VerifyTree()
 
 		if !check {
