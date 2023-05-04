@@ -30,16 +30,20 @@ type Node struct {
 	//wg    sync.WaitGroup
 }
 
+type ReceiveBlockArg struct {
+	ReceiveBlock *blockchain.Block
+}
+
 // Receives blocks and adds them to local blockchain.
 // Sets parent hash of block to match current root hash of chain, because the new block will become the new root.
-func (node *Node) ReceiveBlock(block *blockchain.Block, reply *string) error {
+func (node *Node) ReceiveBlock(arg ReceiveBlockArg, reply *string) error {
 	fmt.Println("--------------------------------------------")
 	fmt.Println("Block received!!")
 	fmt.Println("--------------------------------------------")
 
-	block.SetBlockParentHash(node.localChain.GetRoot().GetHash())
+	arg.ReceiveBlock.SetBlockParentHash(node.localChain.GetRoot().GetHash())
 
-	node.localChain.AddBlock(block)
+	node.localChain.AddBlock(arg.ReceiveBlock)
 
 	return nil
 }
@@ -48,13 +52,16 @@ func (node *Node) ReceiveBlock(block *blockchain.Block, reply *string) error {
 // Mine the block and add it to the chain.
 // Calls ReceiveBlock on all peers and prints messages to console (will change to logs)
 // Currently: no exported fields error on type block
+// Need to register block as RPC?
 func (node *Node) SendBlock(block *blockchain.Block, reply *string) error {
+	arg := new(ReceiveBlockArg)
+	arg.ReceiveBlock = block
 
 	for i, peerNode := range node.peerNodes {
 		fmt.Printf("-- Sending block to node %d!\n", i)
 
 		// type blockchain.Block has no exported fields?
-		err := peerNode.rpcConnection.Call("node.ReceiveBlock", block, &reply)
+		err := peerNode.rpcConnection.Call("node.ReceiveBlock", arg, &reply)
 
 		fmt.Println(err)
 
