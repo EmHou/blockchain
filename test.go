@@ -311,7 +311,7 @@ func testConnection() {
 	block.AddTransaction(trans4)
 	block.AddTransaction(t)
 	block.AddTransaction(t2)
-	block.AddTransaction(t3)
+	//block.AddTransaction(t3)
 
 
 	chain.AddBlock(block)

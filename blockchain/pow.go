@@ -68,6 +68,13 @@ func (block *Block) Mine() (int, [32]byte) {
 
 	nonce := 0
 
+	if len(block.dataList) != max {
+		fmt.Println()
+		log.Println("Not enough transactions to mine block")
+		fmt.Println()
+		return 0, hash
+	}
+
 	for nonce < math.MaxInt64 {
 		hash, _ := block.CalculateHash()
 
