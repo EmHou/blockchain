@@ -3,7 +3,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net/rpc"
@@ -118,86 +117,78 @@ func main() {
 	// transaction data goes here
 
 	for {
-		fmt.Print("Type 1 to send data, type 2 to view current chain: ")
-		reader := bufio.NewScanner(os.Stdin)
-		reader.Scan()
-		option := reader.Text()
+		// fmt.Print("Type 1 to send data, type 2 to view current chain: ")
+		// reader := bufio.NewScanner(os.Stdin)
+		// reader.Scan()
+		// option := reader.Text()
 
-		if option == "2" {
-			fmt.Print(node.NodeChainToString())
-		} else if option == "1" {
-			fmt.Println("What would you like to send?: ")
-			reader2 := bufio.NewScanner(os.Stdin)
-			reader2.Scan()
-			data := reader.Text()
-			byteData := make([]byte, len(data))
+		// if option == "2" {
+		// 	fmt.Print(node.NodeChainToString())
+		// } else if option == "1" {
+		// 	fmt.Println("What would you like to send?: ")
+		// 	reader2 := bufio.NewScanner(os.Stdin)
+		// 	reader2.Scan()
+		// 	data := reader.Text()
+		// 	byteData := make([]byte, len(data))
 
-			for i := 0; i < len(data); i++ {
-				byteData[i] = data[i]
-			}
+		// 	for i := 0; i < len(data); i++ {
+		// 		byteData[i] = data[i]
+		// 	}
 
-			// make current block and add transaction
-			currentBlock := blockchain.MakeBlock([]byte{0})
+		// make current block and add transaction
+		currentBlock := blockchain.MakeBlock([]byte{0})
 
-			// this is for user input:
+		// this is for user input:
 
-			// make transaction from data
+		// make transaction from data
 
-			// transaction := blockchain.Transaction{
-			// 	Sender:    []byte("s1"),
-			// 	Recipient: []byte("r1"),
-			// 	Timestamp: time.Now().UnixNano(),
-			// 	Data:      byteData,
-			// }
-			// currentBlock.AddTransaction(transaction)
+		// transaction := blockchain.Transaction{
+		// 	Sender:    []byte("s1"),
+		// 	Recipient: []byte("r1"),
+		// 	Timestamp: time.Now().UnixNano(),
+		// 	Data:      byteData,
+		// }
+		// currentBlock.AddTransaction(transaction)
 
-			// user input ends here
+		// user input ends here
 
-			// for non-user input testing:
-			currentBlock.AddTransaction(t)
-			currentBlock.AddTransaction(t2)
-			currentBlock.AddTransaction(t3)
-			currentBlock.AddTransaction(trans1)
-			currentBlock.AddTransaction(trans2)
-			currentBlock.AddTransaction(trans3)
-			currentBlock.AddTransaction(trans4)
+		// for non-user input testing:
+		currentBlock.AddTransaction(t)
+		currentBlock.AddTransaction(t2)
+		currentBlock.AddTransaction(t3)
+		currentBlock.AddTransaction(trans1)
+		currentBlock.AddTransaction(trans2)
+		currentBlock.AddTransaction(trans3)
+		currentBlock.AddTransaction(trans4)
 
-			// maybe add this to SendBlock RPC instead
-			currentBlock.Mine()
+		currentBlock.Mine()
 
-			// test get peer nodes
+		// test SendBlock
+		fmt.Println("--------------------------------------------")
+		fmt.Println("BLOCK SENT")
+		fmt.Println("--------------------------------------------")
+		node.SendBlock(currentBlock)
+		fmt.Println("--------------------------------------------")
 
-			// fmt.Println("--------------------------------------------")
-			// fmt.Println("PEER NODES:")
-			// fmt.Print(node.GetPeerNodes())
-			// fmt.Println("--------------------------------------------")
+		// fmt.Println("SECOND BLOCK SENT")
+		// fmt.Println("--------------------------------------------")
+		// node.SendBlock(currentBlock, &reply)
+		// fmt.Println("--------------------------------------------")
 
-			// test SendBlock
-			fmt.Println("--------------------------------------------")
-			fmt.Println("BLOCK SENT")
-			fmt.Println("--------------------------------------------")
-			node.SendBlock(currentBlock)
-			fmt.Println("--------------------------------------------")
+		//test ReceiveBlock
+		// fmt.Println("--------------------------------------------")
+		// fmt.Println("BLOCK RECEIVED")
+		// fmt.Println("--------------------------------------------")
+		// node.ReceiveBlock(currentBlock, &reply)
+		// fmt.Println("--------------------------------------------")
 
-			// fmt.Println("SECOND BLOCK SENT")
-			// fmt.Println("--------------------------------------------")
-			// node.SendBlock(currentBlock, &reply)
-			// fmt.Println("--------------------------------------------")
+		// fmt.Println("SECOND BLOCK RECEIVED")
+		// fmt.Println("--------------------------------------------")
+		// node.ReceiveBlock(newBlock2, &reply)
+		// fmt.Println("--------------------------------------------")
 
-			//test ReceiveBlock
-			// fmt.Println("--------------------------------------------")
-			// fmt.Println("BLOCK RECEIVED")
-			// fmt.Println("--------------------------------------------")
-			// node.ReceiveBlock(currentBlock, &reply)
-			// fmt.Println("--------------------------------------------")
-
-			// fmt.Println("SECOND BLOCK RECEIVED")
-			// fmt.Println("--------------------------------------------")
-			// node.ReceiveBlock(newBlock2, &reply)
-			// fmt.Println("--------------------------------------------")
-
-		} else {
-			fmt.Println("Invalid entry!")
-		}
+		// } else {
+		// 	fmt.Println("Invalid entry!")
+		// }
 	}
 }

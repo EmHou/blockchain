@@ -75,8 +75,6 @@ func (node *Node) SendBlock(block *blockchain.Block) {
 	}
 }
 
-// old //
-
 // Receives blocks and adds them to local blockchain.
 // Sets parent hash of block to match current root hash of chain, because the new block will become the new root.
 // func (node *Node) ReceiveBlock(block *blockchain.Block, reply *string) error {
