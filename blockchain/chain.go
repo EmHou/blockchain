@@ -48,6 +48,10 @@ func (blockChain *BlockChain) GetRoot() *Block {
 	return blockChain.root
 }
 
+func (blockChain *BlockChain) GetBlockListLen() int {
+	return len(blockChain.blockList)
+}
+
 // AddBlock adds a block to the blockchain.
 // Does not allow block to be added if not full.
 // Checks if the hash of the to-be-added block and parent block exists.
@@ -65,6 +69,7 @@ func (blockChain *BlockChain) AddBlock(block *Block) {
 	blockHash := block.GetParentBlockHash()
 
 	if len(block.GetDataList()) < GetMax() {
+		fmt.Println()
 		log.Println("Block is not full, cannot add to chain.")
 		fmt.Println()
 
@@ -75,6 +80,7 @@ func (blockChain *BlockChain) AddBlock(block *Block) {
 
 		blockChain.chain.RebuildTreeWith(blockChain.blockList) // rebuilds chain and sets blockChain.chain to the new chain
 	} else {
+		fmt.Println()
 		log.Println("Block hash does not match root hash, or block hash does not exist.")
 		fmt.Println()
 	}

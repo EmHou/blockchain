@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
+	"github.com/cbergoon/merkletree"
 )
 
 type ServerConnection struct {
@@ -24,106 +25,77 @@ type Node struct {
 	peerNodes []ServerConnection
 
 	// local copy of blockchain
-	localChain blockchain.BlockChain
+	localChain *blockchain.BlockChain
 
 	mutex sync.Mutex
-	// wg    sync.WaitGroup
+	wg    sync.WaitGroup
 }
 
-// ReceiveBlock: The block sent to/received by the node.
-type ReceiveBlockArg struct {
-	ReceiveBlock *blockchain.Block
+// From its own chain
+// Already have from header: parentBlockHash,
+// Already have from block: transaction hash of parent block (data)
+// Needs: nonce, timestamp, and hash to verify hash
+type BlockArg struct {
+	Nonce     uint64
+	Timestamp int64
+	Hash      []byte
+
+	DataList []merkletree.Content
 }
 
-// Success: Marks whether or not the block was successfully added to the chain.
-type ReceiveBlockReply struct {
+type BlockReply struct {
 	Success bool
 }
 
-// ReceiveBlock RPC. Takes in ReceiveBlockArg (block received), sets parent hash, and adds to blockchain.
-// Replies success if no errors occurred.
-func (node *Node) ReceiveBlock(arg ReceiveBlockArg, reply *ReceiveBlockReply) error {
-	arg.ReceiveBlock.SetBlockParentHash(node.localChain.GetRoot().GetHash())
-	node.localChain.AddBlock(arg.ReceiveBlock)
-	reply.Success = true
+func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
+	
+	// Needs to intialise a new blockchain if it doesn't have one
+	// with the same timestamp as the genesis block
+	if node.localChain == nil{
+		node.localChain = blockchain.NewBlockChain()
+	}
+	
+	parentBlockHash := node.localChain.GetRoot().GetParentBlockHash()
+	addBlock := blockchain.MakeAddBlock(args.Timestamp, parentBlockHash, args.Nonce, args.DataList)
+	// create a new Merkle Tree from the list of transactions
+
+	node.wg.Add(1)
+	// Nonce should be correct
+	go func() {
+		defer node.wg.Done()
+		node.localChain.AddBlock(addBlock)
+	}()
+	node.wg.Wait()
+	
+	// need to fix this because addblock might return an error
+	reply.Success = true 
 	return nil
 }
 
 // Takes in a block and calls ReceiveBlock on all peer nodes, passing it as an argument.
 func (node *Node) SendBlock(block *blockchain.Block) {
-	arg := new(ReceiveBlockArg)
-	arg.ReceiveBlock = block
+	arg := &BlockArg{
+		Nonce:     block.GetNonce(),
+		Timestamp: block.GetTimestamp(),
+		Hash:      block.GetHash(),
+		DataList:  block.GetDataList(),
+	}
 
-	for i := range node.peerNodes {
-		result := new(ReceiveBlockReply)
+	for _, peer := range node.peerNodes {
+		if peer.rpcConnection != nil {
 
-		// this is fine
-		// fmt.Printf("============STACK=============")
-		// debug.PrintStack()
-		// fmt.Printf("==============================")
+			go func(peer ServerConnection) {
+				var reply BlockReply
 
-		serverCall := node.peerNodes[i].rpcConnection.Go("Node.ReceiveBlock", arg, &result, nil)
+				peer.rpcConnection.Call("Node.ReceiveBlock", arg, &reply)
 
-		// doesn't reach this
-		// debug.PrintStack()
-
-		<-serverCall.Done
-
-		if result.Success {
-			fmt.Println("Block sent successfully!")
+				if reply.Success {
+					fmt.Println("Response back from peer node: block was received successfully!")
+				}
+			}(peer)
 		}
 	}
 }
-
-// Receives blocks and adds them to local blockchain.
-// Sets parent hash of block to match current root hash of chain, because the new block will become the new root.
-// func (node *Node) ReceiveBlock(block *blockchain.Block, reply *string) error {
-// 	fmt.Println("--------------------------------------------")
-// 	fmt.Println("Block received!!")
-// 	fmt.Println("--------------------------------------------")
-
-// 	block.SetBlockParentHash(node.localChain.GetRoot().GetHash())
-
-// 	node.localChain.AddBlock(block)
-
-// 	return nil
-// }
-
-// Send blocks to peers.
-// Mine the block and add it to the chain.
-// Calls ReceiveBlock on all peers and prints messages to console (will change to logs)
-// stack overflow error
-// func (node *Node) SendBlock(block *blockchain.Block) {
-// 	var wg sync.WaitGroup
-// 	var i = 0
-
-// 	arg := new(ReceiveBlockArg)
-// 	arg.ReceiveBlock = block
-
-// 	for _, peerNode := range node.peerNodes {
-// 		wg.Add(1)
-
-// 		go func(peerNode ServerConnection) {
-// 			defer wg.Done()
-
-// 			result := new(ReceiveBlockReply)
-
-// 			err := peerNode.rpcConnection.Go("Node.ReceiveBlock", arg, &result, nil)
-
-// 			if err != nil {
-// 				fmt.Println("Block failed to send!")
-// 			} else {
-// 				fmt.Printf("Block successfully sent to node %d!\n", i)
-// 			}
-// 			i++
-
-// 		}(peerNode)
-// 	}
-
-// 	wg.Wait()
-
-// 	fmt.Println("-- Sent block to nodes!")
-// }
 
 func (node *Node) NodeChainToString() string {
 	return node.localChain.String()
@@ -133,7 +105,6 @@ func MakeNode(i int) *Node {
 	node := new(Node)
 	node.ID = i
 	node.Self = ServerConnection{serverID: i}
-	node.localChain = *blockchain.NewBlockChain()
 
 	return node
 }

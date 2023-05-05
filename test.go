@@ -3,9 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/rpc"
+	"os"
 	"strconv"
+	"time"
+	
+	connection "github.com/Lqvendar/blockchain/node"
 
-	//"sync"
+	"sync"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
 	"github.com/cbergoon/merkletree"
@@ -58,7 +63,7 @@ var trans4 = blockchain.Transaction{
 }
 
 // Tests the getters of a block
-func TestGetters() {
+func testGetters() {
 	fmt.Println("Blockchain")
 	fmt.Println("-----------")
 
@@ -73,7 +78,7 @@ func TestGetters() {
 }
 
 // Tests Equals() of transactions
-func TestEquals() {
+func testEquals() {
 	fmt.Println("-----------")
 
 	fmt.Println("Testing Equals() of transactions")
@@ -90,7 +95,7 @@ func TestEquals() {
 // Verifies hashes of entire Merkle Tree
 // Verifies a specific transaction is in the Merkle Tree
 // Prints out string representation of the Merkle Tree
-func TestTransactionTree() {
+func testTransactionTree() {
 	fmt.Println("-----------")
 
 	// Testing how to append transactions to data (MerkleTree)
@@ -137,7 +142,7 @@ func TestTransactionTree() {
 
 // Tests GetMerklePath() and RebuildTreeWith()
 // This is to understand how Merkle trees work and how to use the functions
-func TestMerkleTree() {
+func testMerkleTree() {
 	fmt.Println("-----------")
 	var newList []merkletree.Content
 	newList = append(newList, trans1)
@@ -192,7 +197,7 @@ func TestMerkleTree() {
 // Tests adding transactions to a block
 // Tests if maximum transactions in a block is 1 (because of SetMax(1))
 // Testing Mine() (finding nonce and setting hash)
-func TestAddTransactionsAndMine() {
+func testAddTransactionsAndMine() {
 	fmt.Println("-----------")
 
 	newBlock := blockchain.MakeBlock([]byte{0})
@@ -215,7 +220,7 @@ func TestAddTransactionsAndMine() {
 	fmt.Println()
 }
 
-func TestNewBlockChain() blockchain.BlockChain {
+func testNewBlockChain() {
 	fmt.Println("-----------")
 	fmt.Println("Testing NewBlockChain()")
 	chain := blockchain.NewBlockChain()
@@ -236,16 +241,21 @@ func TestNewBlockChain() blockchain.BlockChain {
 
 	chain.AddBlock(block)
 	fmt.Println()
+	// also shouldn't add because doesn't have parent hash
 	fmt.Println("Should not add to chain because not at max transactions:")
 	fmt.Println(chain.String())
-
-	return *chain
 }
 
-func TestAddingCorrectBlock(chain *blockchain.BlockChain) {
+func testAddingCorrectBlock() {
 	fmt.Println("-----------")
+	chain := blockchain.NewBlockChain()
+	fmt.Println("String representation of chain (with genesis block): ")
+	fmt.Println(chain.String())
+	fmt.Println()
 	fmt.Println("Testing AddBlock() with correct block")
-	goodBlock := blockchain.MakeBlock(chain.GetRoot().GetParentBlockHash())
+	goodBlock := blockchain.MakeBlock(chain.GetRoot().GetHash())
+	fmt.Print("Parent hash: ")
+	fmt.Println(chain.GetRoot().GetHash())
 	goodBlock.AddTransaction(trans1)
 	goodBlock.AddTransaction(trans2)
 	goodBlock.AddTransaction(trans3)
@@ -261,7 +271,7 @@ func TestAddingCorrectBlock(chain *blockchain.BlockChain) {
 	fmt.Println()
 }
 
-func TestMining(difficulty int) {
+func testMining(difficulty int) {
 	testMineBlock := blockchain.MakeBlock([]byte{0})
 	testMineBlock.AddTransaction(trans1)
 
@@ -270,59 +280,101 @@ func TestMining(difficulty int) {
 	testMineBlock.TestPrintMine()
 }
 
+func testConnection() {
+	arguments := os.Args
+
+	myID, err := strconv.Atoi(arguments[1])
+	node := connection.MakeNode(myID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = rpc.Register(node)
+	fmt.Println("Node " + strconv.Itoa(myID) + " up!")
+	if err != nil {
+		log.Fatal("error registering the RPCs\n", err)
+	}
+
+	node.ReadClusterConfig("nodes.txt")
+	// nodes connect now
+	node.ConnectNodes()
+	time.Sleep(8 * time.Second)
+
+	// testing creation of a chain
+	chain := blockchain.NewBlockChain()
+
+	// testing creation of a block
+	block := blockchain.MakeBlock(chain.GetRoot().GetHash())
+	block.AddTransaction(trans1)
+	block.AddTransaction(trans2)
+	block.AddTransaction(trans3)
+	block.AddTransaction(trans4)
+	block.AddTransaction(t)
+	block.AddTransaction(t2)
+	block.AddTransaction(t3)
+
+
+	chain.AddBlock(block)
+	node.SendBlock(block)
+}
+
+/*
 // This is for the Blockchain presenation
-//func main() {
-// Testing the creation of a block
-// Nonce set to 0
-// Hash is not set yet because it will be set when mining
-//TestGetters()
+func main() {
+	// Testing the creation of a block
+	// Nonce set to 0
+	// Hash is not set yet because it will be set when mining
+	//testGetters()
 
-// Added three transactions to the block
-// VerifyTree() verifies the hashes of the Merkle Tree
-// VerifyContent() verifies if a specific transaction is in the Merkle Tree
-// String representation of Merkle Tree
-// first boolean value: if the content stored is a leaf
-// second boolean value: if it is a duplicate
-// [] of numbers is the hash
-// info of the block header
-//TestTransactionTree()
+	// Added three transactions to the block
+	// VerifyTree() verifies the hashes of the Merkle Tree
+	// VerifyContent() verifies if a specific transaction is in the Merkle Tree
+	// String representation of Merkle Tree
+	// first boolean value: if the content stored is a leaf
+	// second boolean value: if it is a duplicate
+	// [] of numbers is the hash
+	// info of the block header
+	//t()
 
-// Setting max number of transactions in a block to 1 just for demonstration purposes
-// Attempt to add two transactions into the block
-// Only one transaction will be added because the max is 1
-// In the string representation of the block, it will show the duplicate transaction (second boolean is true)
-// Attempts to mine the block. After it's done mining, it will set the block's hash and nonce.
-//TestAddTransactionsAndMine()
+	/t()
 
-// Making a block and adding a transaction (max is still 1)
-// Prints out all the hashes that it tests with a changing nonce (nonce increases by 1 each time)
-//TestMining(18)
-//}
+	// Setting max number of transactions in a block to 1 just for demonstration purposes
+	// Attempt to add two transactions into the block
+	// Only one transaction will be added because the max is 1
+	// In the string representation of the block, it will show the duplicate transaction (second boolean is true)
+	// Attempts to mine the block. After it's done mining, it will set the block's hash and nonce.
+	//testAddTransactionsAndMine()
+
+	// Making a block and adding a transaction (max is still 1)
+	// Prints out all the hashes that it tests with a changing nonce (nonce increases by 1 each time)
+	//testMining(18)
+}
+*/
 
 /*
 func main() {
 	// Testing the getters of a block
-	TestGetters()
+	testGetters()
 
 	// Testing Equals() of transactions
-	TestEquals()
+	testEquals()
 
 	// Testing transaction Merkle Tree
 	// Creates Merle Tree of transactions
 	// Verifies hashes of entire Merkle Tree
 	// Verifies a specific transaction is in the Merkle Tree
 	// Prints out string representation of the Merkle Tree
-	TestTransactionTree()
+	t()
 
 	// Testing GetMerklePath() and RebuildTreeWith()
 	// This is to understand how Merkle trees work and how to use the functions
-	TestMerkleTree()
+	testMerkleTree()
 
 	// Testing AddTransaction() to a block and Run()
-	TestAddTransactionsAndMine()
-	chain := TestNewBlockChain()
+	testAddTransactionsAndMine()
+	chain := testNewBlockChain()
 
-	TestAddingCorrectBlock(&chain) // & refers to where the variable is located in memory
+t(&chain) // & refers to where the variable is located in memory
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -330,3 +382,11 @@ func main() {
 	wg.Wait()
 }
 */
+
+func main() {
+	testConnection()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	wg.Wait()
+}

@@ -21,10 +21,10 @@ var max int = 7
 // pow		Proof of Work algorithm to validate blocks and calculate Nonce to add block to chain
 // DataList	transactions that are to added to the block
 type Block struct {
-	Header   BlockHeader
-	Data     *merkletree.MerkleTree
-	Pow      *ProofOfWork
-	DataList []merkletree.Content
+	header   BlockHeader
+	data     *merkletree.MerkleTree
+	pow      *ProofOfWork
+	dataList []merkletree.Content
 }
 
 // BlockHeader contains metaDataof the block.
@@ -33,50 +33,54 @@ type Block struct {
 // Hash	 			takes Nonce, Timestamps, ParentBlockHash, and root Hash of the transaction Merkle Tree
 // Nonce	 		rand int that is initialised to 0
 type BlockHeader struct {
-	Timestamp       int64
-	ParentBlockHash []byte
-	Hash            []byte
-	Nonce           uint64
+	timestamp       int64
+	parentBlockHash []byte
+	hash            []byte
+	nonce           uint64
 }
 
 func (block *Block) GetTimestamp() int64 {
-	return block.Header.Timestamp
+	return block.header.timestamp
 }
 
 func (block *Block) GetHeader() BlockHeader {
-	return block.Header
+	return block.header
 }
 
 func (block *Block) GetParentBlockHash() []byte {
-	return block.Header.ParentBlockHash
+	return block.header.parentBlockHash
 }
 
 func (block *Block) GetHash() []byte {
-	return block.Header.Hash
+	return block.header.hash
 }
 
-func (block *Block) SetHash(Hash []byte) {
-	block.Header.Hash = Hash
+func (block *Block) SetHash(hash []byte) {
+	block.header.hash = hash
 }
 
 func (block *Block) GetNonce() uint64 {
-	return block.Header.Nonce
+	return block.header.nonce
 }
 
-func (block *Block) SetNonce(Nonce uint64) {
-	block.Header.Nonce = Nonce
+func (block *Block) SetNonce(nonce uint64) {
+	block.header.nonce = nonce
 }
 
 func (block *Block) GetData() *merkletree.MerkleTree {
-	return block.Data
+	return block.data
 }
 
 func (block *Block) GetTarget() *big.Int {
-	return block.Pow.Target
+	return block.pow.target
 }
 
 func (block *Block) GetDataList() []merkletree.Content {
-	return block.DataList
+	return block.dataList
+}
+
+func (block *Block) ResetDataList() {
+	block.dataList = []merkletree.Content{}
 }
 
 func SetMax(maxiumum int) {
@@ -106,7 +110,7 @@ func (Block Block) CalculateHash() ([]byte, error) {
 // Part of the Content interface in MerkleTree Package
 // TODO
 func (block Block) Equals(other merkletree.Content) (bool, error) {
-	return block.Data == other.(Block).Data, nil
+	return block.data == other.(Block).data, nil
 }
 
 // NewBlockChain creates a new block and returns the pointer to it.
@@ -118,17 +122,40 @@ func (block Block) Equals(other merkletree.Content) (bool, error) {
 // DataList 		to empty array of type (merkletree.Content)
 // Pow				to a new ProofOfWork struct
 func MakeBlock(pBlockHash []byte) *Block {
-	Header := &BlockHeader{
-		Timestamp:       time.Now().UnixNano(),
-		ParentBlockHash: pBlockHash,
-		Hash:            []byte{},
-		Nonce:           0,
+	header := &BlockHeader{
+		timestamp:       time.Now().UnixNano(),
+		parentBlockHash: pBlockHash,
+		hash:            []byte{},
+		nonce:           0,
 	}
 
 	block := &Block{
-		Header:   *Header,
-		DataList: []merkletree.Content{},
-		Pow:      NewPOW(),
+		header:   *header,
+		dataList: []merkletree.Content{},
+		pow:      NewPOW(),
+	}
+
+	return block
+}
+
+func MakeAddBlock(time int64, pBlockHash []byte, nonc uint64, dl []merkletree.Content) *Block {
+	header := &BlockHeader{
+		timestamp:       time,
+		parentBlockHash: pBlockHash,
+		hash:            []byte{},
+		nonce:           nonc,
+	}
+
+	tree, err := merkletree.NewTree(dl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	block := &Block{
+		header:   *header,
+		data: tree,
+		dataList: dl,
+		pow:      NewPOW(),
 	}
 
 	return block
@@ -136,6 +163,7 @@ func MakeBlock(pBlockHash []byte) *Block {
 
 // Takes MakeBlock() and passes empty byte array to it
 // Has no parent block, so ParentBlockHash is empty (empty byte array)
+// time should be in UnixNano
 func MakeGenesisBlock() *Block {
 	genesis := MakeBlock([]byte{})
 
@@ -143,7 +171,7 @@ func MakeGenesisBlock() *Block {
 		emptyTransaction := Transaction{
 			Sender:    []byte{},
 			Recipient: []byte{},
-			Timestamp: time.Now().UnixNano(),
+			Timestamp: 0,
 			Data:      []byte("init"),
 		}
 
@@ -159,21 +187,21 @@ func MakeGenesisBlock() *Block {
 // If the transaction MerkleTree is empty, creates a new Merkle Tree with the transaction.
 // If it is not empty, rebuilds the Merkle Tree with the new transaction.
 func (block *Block) AddTransaction(transaction Transaction) {
-	if len(block.DataList) >= max {
+	if len(block.dataList) >= max {
 		fmt.Println("Block is full, cannot add more transactions")
 
 	} else {
-		block.DataList = append(block.DataList, transaction)
+		block.dataList = append(block.dataList, transaction)
 
-		if block.Data == nil {
-			tree, err := merkletree.NewTree(block.DataList)
+		if block.data == nil {
+			tree, err := merkletree.NewTree(block.dataList)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			block.Data = tree
+			block.data = tree
 		} else {
-			err := block.Data.RebuildTreeWith(block.DataList)
+			err := block.data.RebuildTreeWith(block.dataList)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -186,22 +214,22 @@ func (block *Block) AddTransaction(transaction Transaction) {
 // Used when first block is added to the blockchain after the genesis block.
 // Otherwise, the parent Hash will be empty for this block, and it will not be added.
 func (block *Block) SetBlockParentHash(Hash []byte) {
-	block.Header.ParentBlockHash = Hash
+	block.header.parentBlockHash = Hash
 }
 
 func (block Block) String() string {
 	str := "**Block**\n"
-	str += block.Header.String()
+	str += block.header.String()
 	str += "Data(String representation of Transactions Merkle Tree):\n"
-	str += block.Data.String() + "\n"
+	str += block.data.String() + "\n"
 
 	return str
 }
 
 func (Header *BlockHeader) String() string {
-	str := "Timestamp: " + strconv.FormatInt(Header.Timestamp, 10) + "\n"
-	str += "Parent Block Hash: " + hex.EncodeToString(Header.ParentBlockHash) + "\n"
-	str += "Hash: " + hex.EncodeToString(Header.Hash) + "\n"
+	str := "Timestamp: " + strconv.FormatInt(Header.timestamp, 10) + "\n"
+	str += "Parent Block Hash: " + hex.EncodeToString(Header.parentBlockHash) + "\n"
+	str += "Hash: " + hex.EncodeToString(Header.hash) + "\n"
 
 	return str
 }
