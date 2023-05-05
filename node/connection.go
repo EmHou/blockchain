@@ -63,12 +63,16 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 	// Nonce should be correct
 	go func() {
 		defer node.wg.Done()
-		node.localChain.AddBlock(addBlock)
+		err := node.localChain.AddBlock(addBlock)
+
+		if err != nil {
+			reply.Success = false
+		} else {
+			reply.Success = true
+		}
 	}()
 	node.wg.Wait()
 	
-	// need to fix this because addblock might return an error
-	reply.Success = true 
 	return nil
 }
 

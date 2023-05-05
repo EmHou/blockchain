@@ -6,6 +6,7 @@ import (
 	"log"
 	"sync"
 	"time"
+	"errors"
 
 	"github.com/cbergoon/merkletree"
 )
@@ -56,7 +57,7 @@ func (blockChain *BlockChain) GetBlockListLen() int {
 // Does not allow block to be added if not full.
 // Checks if the hash of the to-be-added block and parent block exists.
 // checks if the root hash (of the BlockChain Merkle Tree) is equal to the parent block hash of the to-be-added block.
-func (blockChain *BlockChain) AddBlock(block *Block) {
+func (blockChain *BlockChain) AddBlock(block *Block) error {
 	blockChain.wg.Add(1)
 	go func() {
 		defer blockChain.wg.Done()
@@ -73,6 +74,8 @@ func (blockChain *BlockChain) AddBlock(block *Block) {
 		log.Println("Block is not full, cannot add to chain.")
 		fmt.Println()
 
+		return errors.New("Block is not full, cannot add to chain")
+
 		// blockHash exists         parentHash Exists      rootHash == parentBlockHash
 	} else if block.GetHash() != nil && rootHash != nil && bytes.Equal(blockHash, rootHash) {
 		blockChain.blockList = append(blockChain.blockList, block)
@@ -83,7 +86,11 @@ func (blockChain *BlockChain) AddBlock(block *Block) {
 		fmt.Println()
 		log.Println("Block hash does not match root hash, or block hash does not exist.")
 		fmt.Println()
+
+		return errors.New("Block hash does not match root hash, or block hash does not exist")
 	}
+
+	return nil
 }
 
 // Asycnchronously runs the verification of the blockchain every 300 milliseconds.
