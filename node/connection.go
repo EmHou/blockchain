@@ -27,52 +27,105 @@ type Node struct {
 	localChain blockchain.BlockChain
 
 	mutex sync.Mutex
-	//wg    sync.WaitGroup
+	// wg    sync.WaitGroup
 }
 
+// ReceiveBlock: The block sent to/received by the node.
 type ReceiveBlockArg struct {
 	ReceiveBlock *blockchain.Block
 }
 
-// Receives blocks and adds them to local blockchain.
-// Sets parent hash of block to match current root hash of chain, because the new block will become the new root.
-func (node *Node) ReceiveBlock(arg ReceiveBlockArg, reply *string) error {
-	fmt.Println("--------------------------------------------")
-	fmt.Println("Block received!!")
-	fmt.Println("--------------------------------------------")
+// Success: Marks whether or not the block was successfully added to the chain.
+type ReceiveBlockReply struct {
+	Success bool
+}
 
+// ReceiveBlock RPC. Takes in ReceiveBlockArg (block received), sets parent hash, and adds to blockchain.
+// Replies success if no errors occurred.
+func (node *Node) ReceiveBlock(arg ReceiveBlockArg, reply *ReceiveBlockReply) error {
 	arg.ReceiveBlock.SetBlockParentHash(node.localChain.GetRoot().GetHash())
-
 	node.localChain.AddBlock(arg.ReceiveBlock)
-
+	reply.Success = true
 	return nil
 }
+
+// Takes in a block and calls ReceiveBlock on all peer nodes, passing it as an argument.
+func (node *Node) SendBlock(block *blockchain.Block) {
+	arg := new(ReceiveBlockArg)
+	arg.ReceiveBlock = block
+
+	for i := range node.peerNodes {
+		result := new(ReceiveBlockReply)
+
+		// this is fine
+		// fmt.Printf("============STACK=============")
+		// debug.PrintStack()
+		// fmt.Printf("==============================")
+
+		serverCall := node.peerNodes[i].rpcConnection.Go("Node.ReceiveBlock", arg, &result, nil)
+
+		// doesn't reach this
+		// debug.PrintStack()
+
+		<-serverCall.Done
+
+		if result.Success {
+			fmt.Println("Block sent successfully!")
+		}
+	}
+}
+
+// old //
+
+// Receives blocks and adds them to local blockchain.
+// Sets parent hash of block to match current root hash of chain, because the new block will become the new root.
+// func (node *Node) ReceiveBlock(block *blockchain.Block, reply *string) error {
+// 	fmt.Println("--------------------------------------------")
+// 	fmt.Println("Block received!!")
+// 	fmt.Println("--------------------------------------------")
+
+// 	block.SetBlockParentHash(node.localChain.GetRoot().GetHash())
+
+// 	node.localChain.AddBlock(block)
+
+// 	return nil
+// }
 
 // Send blocks to peers.
 // Mine the block and add it to the chain.
 // Calls ReceiveBlock on all peers and prints messages to console (will change to logs)
-// Currently: no exported fields error on type block
-// Need to register block as RPC?
-func (node *Node) SendBlock(block *blockchain.Block, reply *string) error {
-	arg := new(ReceiveBlockArg)
-	arg.ReceiveBlock = block
+// stack overflow error
+// func (node *Node) SendBlock(block *blockchain.Block) {
+// 	var wg sync.WaitGroup
+// 	var i = 0
 
-	for i, peerNode := range node.peerNodes {
-		fmt.Printf("-- Sending block to node %d!\n", i)
+// 	arg := new(ReceiveBlockArg)
+// 	arg.ReceiveBlock = block
 
-		// type blockchain.Block has no exported fields?
-		err := peerNode.rpcConnection.Call("node.ReceiveBlock", arg, &reply)
+// 	for _, peerNode := range node.peerNodes {
+// 		wg.Add(1)
 
-		fmt.Println(err)
+// 		go func(peerNode ServerConnection) {
+// 			defer wg.Done()
 
-		if err != nil {
-			fmt.Println("Block failed to send!")
-		} else {
-			fmt.Printf("Block successfully sent to node %d!\n", i)
-		}
-	}
-	return nil
-}
+// 			result := new(ReceiveBlockReply)
+
+// 			err := peerNode.rpcConnection.Go("Node.ReceiveBlock", arg, &result, nil)
+
+// 			if err != nil {
+// 				fmt.Println("Block failed to send!")
+// 			} else {
+// 				fmt.Printf("Block successfully sent to node %d!\n", i)
+// 			}
+// 			i++
+
+// 		}(peerNode)
+// 	}
+
+// 	wg.Wait()
+
+// 	fmt.Println("-- Sent block to nodes!")
+// }
 
 func (node *Node) NodeChainToString() string {
 	return node.localChain.String()

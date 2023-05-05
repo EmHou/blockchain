@@ -86,22 +86,6 @@ func main() {
 
 	// for test-sending blocks, will remove //
 
-	// var trans1 = blockchain.Transaction{
-	// 	Sender:    []byte("s1"),
-	// 	Recipient: []byte("r1"),
-	// 	Timestamp: 1682708458208064001,
-	// 	Data:      []byte("data1"),
-	// }
-
-	// var trans2 = blockchain.Transaction{
-	// 	Sender:    []byte("s2"),
-	// 	Recipient: []byte("r2"),
-	// 	Timestamp: 1682708458208064002,
-	// 	Data:      []byte("data2"),
-	// }
-
-	// blockchain.SetMax(1)
-
 	// newBlock := blockchain.MakeBlock([]byte{0})
 	// newBlock.AddTransaction(trans1)
 	// newBlock.Mine()
@@ -114,7 +98,7 @@ func main() {
 
 	//newBlock2.GetHash()
 
-	reply := ""
+	// reply := ""
 
 	//node.SendBlock(newBlock, &reply)
 	//node.SendBlock(newBlock2, &reply)
@@ -132,6 +116,7 @@ func main() {
 
 	// create new scanner to read input from command line
 	// transaction data goes here
+
 	for {
 		fmt.Print("Type 1 to send data, type 2 to view current chain: ")
 		reader := bufio.NewScanner(os.Stdin)
@@ -191,7 +176,7 @@ func main() {
 			fmt.Println("--------------------------------------------")
 			fmt.Println("BLOCK SENT")
 			fmt.Println("--------------------------------------------")
-			node.SendBlock(currentBlock, &reply)
+			node.SendBlock(currentBlock)
 			fmt.Println("--------------------------------------------")
 
 			// fmt.Println("SECOND BLOCK SENT")

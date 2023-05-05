@@ -18,7 +18,7 @@ import (
 const difficulty = 12
 
 type ProofOfWork struct {
-	target *big.Int
+	Target *big.Int
 }
 
 // Hein states: The closer we get to 256, the easier the computation will be. Increasing our difficulty will increase the runtime of our algorithm
@@ -49,7 +49,7 @@ func ToHex(num int64) []byte {
 func (block *Block) BlockDataToBytes() []byte {
 	data := bytes.Join(
 		[][]byte{
-			block.header.parentBlockHash,
+			block.Header.ParentBlockHash,
 			block.GetData().Root.Tree.MerkleRoot(), // root hash of merkle tree
 			ToHex(int64(block.GetNonce())),
 			ToHex(int64(difficulty)),
@@ -104,7 +104,7 @@ func (block *Block) TestPOW(newDiff int) {
 
 	pow := &ProofOfWork{target}
 
-	block.pow = pow
+	block.Pow = pow
 }
 
 func (block *Block) TestPrintMine() (int, [32]byte) {

@@ -14,69 +14,69 @@ import (
 
 var max int = 7
 
-// Includes helper methods that allow easy access to find parentBlockHash, hash, and nonce.
+// Includes helper methods that allow easy access to find ParentBlockHash, Hash, and Nonce.
 // Arbitrary number of transactions - in this implemenation, we choose 7 transactions per block.
-// header	contains metadata of the block
+// Header	contains metaDataof the block
 // data		transactions (Merkle Tree)
-// pow		Proof of Work algorithm to validate blocks and calculate nonce to add block to chain
-// dataList	transactions that are to added to the block
+// pow		Proof of Work algorithm to validate blocks and calculate Nonce to add block to chain
+// DataList	transactions that are to added to the block
 type Block struct {
-	header   BlockHeader
-	data     *merkletree.MerkleTree
-	pow      *ProofOfWork
-	dataList []merkletree.Content
+	Header   BlockHeader
+	Data     *merkletree.MerkleTree
+	Pow      *ProofOfWork
+	DataList []merkletree.Content
 }
 
-// BlockHeader contains metadata of the block.
-// timestamp 		time when block is added to the chain
-// parentBlockHash	hash of the previous block
-// hash	 			takes nonce, timestamps, parentBlockHash, and root hash of the transaction Merkle Tree
-// nonce	 		rand int that is initialised to 0
+// BlockHeader contains metaDataof the block.
+// Timestamp 		time when block is added to the chain
+// ParentBlockHash	Hash of the previous block
+// Hash	 			takes Nonce, Timestamps, ParentBlockHash, and root Hash of the transaction Merkle Tree
+// Nonce	 		rand int that is initialised to 0
 type BlockHeader struct {
-	timestamp       int64
-	parentBlockHash []byte
-	hash            []byte
-	nonce           uint64
+	Timestamp       int64
+	ParentBlockHash []byte
+	Hash            []byte
+	Nonce           uint64
 }
 
 func (block *Block) GetTimestamp() int64 {
-	return block.header.timestamp
+	return block.Header.Timestamp
 }
 
 func (block *Block) GetHeader() BlockHeader {
-	return block.header
+	return block.Header
 }
 
 func (block *Block) GetParentBlockHash() []byte {
-	return block.header.parentBlockHash
+	return block.Header.ParentBlockHash
 }
 
 func (block *Block) GetHash() []byte {
-	return block.header.hash
+	return block.Header.Hash
 }
 
-func (block *Block) SetHash(hash []byte) {
-	block.header.hash = hash
+func (block *Block) SetHash(Hash []byte) {
+	block.Header.Hash = Hash
 }
 
 func (block *Block) GetNonce() uint64 {
-	return block.header.nonce
+	return block.Header.Nonce
 }
 
-func (block *Block) SetNonce(nonce uint64) {
-	block.header.nonce = nonce
+func (block *Block) SetNonce(Nonce uint64) {
+	block.Header.Nonce = Nonce
 }
 
 func (block *Block) GetData() *merkletree.MerkleTree {
-	return block.data
+	return block.Data
 }
 
 func (block *Block) GetTarget() *big.Int {
-	return block.pow.target
+	return block.Pow.Target
 }
 
 func (block *Block) GetDataList() []merkletree.Content {
-	return block.dataList
+	return block.DataList
 }
 
 func SetMax(maxiumum int) {
@@ -90,52 +90,52 @@ func GetMax() int {
 // Part of the Content interface in MerkleTree Package.
 // TODO
 func (Block Block) CalculateHash() ([]byte, error) {
-	hash := sha256.New()
-	data := Block.BlockDataToBytes()
+	Hash := sha256.New()
+	Data := Block.BlockDataToBytes()
 
-	if _, err := hash.Write(data); err != nil {
+	if _, err := Hash.Write(Data); err != nil {
 		return nil, err
 	}
 
-	return hash.Sum(nil), nil
+	return Hash.Sum(nil), nil
 }
 
-// need to set hash of the block after it is added to the chain
+// need to set Hash of the block after it is added to the chain
 // can only use this method after the block is added to the chain
-// because the data (MerkleTree of transacitons) must be set before the hash can be set
+// because the Data(MerkleTree of transacitons) must be set before the Hash can be set
 // Part of the Content interface in MerkleTree Package
 // TODO
 func (block Block) Equals(other merkletree.Content) (bool, error) {
-	return block.data == other.(Block).data, nil
+	return block.Data == other.(Block).Data, nil
 }
 
 // NewBlockChain creates a new block and returns the pointer to it.
 // Initialises:
-// timestamp		to current time in nanoseconds
-// parentBlockHash	to the hash of the previous block (gotten from parameter)
-// hash				to empty byte array, to be set after a nonce is found (after mining when adding to chain)
-// nonce 			to 0
-// dataList 		to empty array of type (merkletree.Content)
-// pow 				to a new ProofOfWork struct
+// Timestamp		to current time in nanoseconds
+// ParentBlockHash	to the Hash of the previous block (gotten from parameter)
+// Hash				to empty byte array, to be set after a Nonce is found (after mining when adding to chain)
+// Nonce 			to 0
+// DataList 		to empty array of type (merkletree.Content)
+// Pow				to a new ProofOfWork struct
 func MakeBlock(pBlockHash []byte) *Block {
-	header := &BlockHeader{
-		timestamp:       time.Now().UnixNano(),
-		parentBlockHash: pBlockHash,
-		hash:            []byte{},
-		nonce:           0,
+	Header := &BlockHeader{
+		Timestamp:       time.Now().UnixNano(),
+		ParentBlockHash: pBlockHash,
+		Hash:            []byte{},
+		Nonce:           0,
 	}
 
 	block := &Block{
-		header:   *header,
-		dataList: []merkletree.Content{},
-		pow:      NewPOW(),
+		Header:   *Header,
+		DataList: []merkletree.Content{},
+		Pow:      NewPOW(),
 	}
 
 	return block
 }
 
 // Takes MakeBlock() and passes empty byte array to it
-// Has no parent block, so parentBlockHash is empty (empty byte array)
+// Has no parent block, so ParentBlockHash is empty (empty byte array)
 func MakeGenesisBlock() *Block {
 	genesis := MakeBlock([]byte{})
 
@@ -159,21 +159,21 @@ func MakeGenesisBlock() *Block {
 // If the transaction MerkleTree is empty, creates a new Merkle Tree with the transaction.
 // If it is not empty, rebuilds the Merkle Tree with the new transaction.
 func (block *Block) AddTransaction(transaction Transaction) {
-	if len(block.dataList) >= max {
+	if len(block.DataList) >= max {
 		fmt.Println("Block is full, cannot add more transactions")
 
 	} else {
-		block.dataList = append(block.dataList, transaction)
+		block.DataList = append(block.DataList, transaction)
 
-		if block.data == nil {
-			tree, err := merkletree.NewTree(block.dataList)
+		if block.Data == nil {
+			tree, err := merkletree.NewTree(block.DataList)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			block.data = tree
+			block.Data = tree
 		} else {
-			err := block.data.RebuildTreeWith(block.dataList)
+			err := block.Data.RebuildTreeWith(block.DataList)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -182,26 +182,26 @@ func (block *Block) AddTransaction(transaction Transaction) {
 
 }
 
-// Function used to set parent hash
+// Function used to set parent Hash
 // Used when first block is added to the blockchain after the genesis block.
-// Otherwise, the parent hash will be empty for this block, and it will not be added.
+// Otherwise, the parent Hash will be empty for this block, and it will not be added.
 func (block *Block) SetBlockParentHash(Hash []byte) {
-	block.header.parentBlockHash = Hash
+	block.Header.ParentBlockHash = Hash
 }
 
 func (block Block) String() string {
 	str := "**Block**\n"
-	str += block.header.String()
-	str += "Data (String representation of Transactions Merkle Tree):\n"
-	str += block.data.String() + "\n"
+	str += block.Header.String()
+	str += "Data(String representation of Transactions Merkle Tree):\n"
+	str += block.Data.String() + "\n"
 
 	return str
 }
 
-func (header *BlockHeader) String() string {
-	str := "Timestamp: " + strconv.FormatInt(header.timestamp, 10) + "\n"
-	str += "Parent Block Hash: " + hex.EncodeToString(header.parentBlockHash) + "\n"
-	str += "Hash: " + hex.EncodeToString(header.hash) + "\n"
+func (Header *BlockHeader) String() string {
+	str := "Timestamp: " + strconv.FormatInt(Header.Timestamp, 10) + "\n"
+	str += "Parent Block Hash: " + hex.EncodeToString(Header.ParentBlockHash) + "\n"
+	str += "Hash: " + hex.EncodeToString(Header.Hash) + "\n"
 
 	return str
 }
@@ -209,10 +209,10 @@ func (header *BlockHeader) String() string {
 //-- Notes --//
 
 // Step 1:
-// Transaction -> get hash -> put in Merkle Tree -> get root hash -> put in block
-// Leaves are added in the order that they are hashed (sequential order)
-// Note: Merkle Tree is a binary tree, a new node is created with the old root as its left child and the new hash as its right child.
+// Transaction -> get Hash -> put in Merkle Tree -> get root Hash -> put in block
+// Leaves are added in the order that they are Hashed (sequential order)
+// Note: Merkle Tree is a binary tree, a new node is created with the old root as its left child and the new Hash as its right child.
 // Step 2:
-// Blocks -> get hash -> put in Merkle tree -> get root hash -> put in chain
+// Blocks -> get Hash -> put in Merkle tree -> get root Hash -> put in chain
 
 // Can only add block to chain if it is accepted by the network
