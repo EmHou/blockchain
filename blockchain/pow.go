@@ -105,6 +105,7 @@ func (block *Block) Mine() (int, [32]byte) {
 	return nonce, hash
 }
 
+// This was only for presenation purposes
 func (block *Block) TestPOW(newDiff int) {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-newDiff)) // left shift
@@ -114,6 +115,7 @@ func (block *Block) TestPOW(newDiff int) {
 	block.pow = pow
 }
 
+// This was only for presentation purposes
 func (block *Block) TestPrintMine() (int, [32]byte) {
 	var intHash big.Int
 	var hash [32]byte
