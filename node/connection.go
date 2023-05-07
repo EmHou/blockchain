@@ -63,7 +63,7 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 	// Nonce should be correct
 	go func() {
 		defer node.wg.Done()
-		err := node.localChain.AddBlock(addBlock)
+		err := node.localChain.AddConsensusBlock(addBlock, args.Hash)
 
 		if err != nil {
 			reply.Success = false

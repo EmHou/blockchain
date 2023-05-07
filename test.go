@@ -10,7 +10,7 @@ import (
 	
 	connection "github.com/Lqvendar/blockchain/node"
 
-	"sync"
+	//"sync"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
 	"github.com/cbergoon/merkletree"
@@ -298,7 +298,7 @@ func testConnection() {
 	node.ReadClusterConfig("nodes.txt")
 	// nodes connect now
 	node.ConnectNodes()
-	time.Sleep(8 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// testing creation of a chain
 	chain := blockchain.NewBlockChain()
@@ -311,7 +311,7 @@ func testConnection() {
 	block.AddTransaction(trans4)
 	block.AddTransaction(t)
 	block.AddTransaction(t2)
-	//block.AddTransaction(t3)
+	block.AddTransaction(t3) // comment and uncomment to test if there are enough transactions to add to chain
 
 
 	chain.AddBlock(block)
@@ -383,6 +383,7 @@ t(&chain) // & refers to where the variable is located in memory
 }
 */
 
+/*
 func main() {
 	testConnection()
 
@@ -390,3 +391,4 @@ func main() {
 	wg.Add(1)
 	wg.Wait()
 }
+*/

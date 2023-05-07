@@ -178,6 +178,7 @@ func MakeGenesisBlock() *Block {
 		genesis.AddTransaction(emptyTransaction)
 	}
 	genesis.Mine()
+	fmt.Println("Genesis block created!")
 
 	return genesis
 }

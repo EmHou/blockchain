@@ -93,7 +93,7 @@ func (block *Block) Mine() (int, [32]byte) {
 		if intHash.Cmp(block.GetTarget()) == -1 {
 			//fmt.Printf("%x", hash)
 			block.SetHash(hash)
-			fmt.Printf("Hash has been set: %x", hash)
+			//fmt.Printf("Hash has been set: %x", hash)
 			break
 		} else {
 			nonce++

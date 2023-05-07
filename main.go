@@ -3,20 +3,18 @@
 package main
 
 import (
-	/*
 	"fmt"
 	"log"
 	"net/rpc"
 	"os"
 	"strconv"
 	"time"
-	*/
 
 	//blockchain "github.com/Lqvendar/blockchain/blockchain"
-	//connection "github.com/Lqvendar/blockchain/node"
+	connection "github.com/Lqvendar/blockchain/node"
 )
 
-/*
+
 func main() {
 
 	arguments := os.Args
@@ -41,33 +39,31 @@ func main() {
 	time.Sleep(8 * time.Second)
 
 	for {
-		// fmt.Print("Type 1 to send data, type 2 to view current chain: ")
-		// reader := bufio.NewScanner(os.Stdin)
-		// reader.Scan()
-		// option := reader.Text()
+		fmt.Print("Type 1 to send data, type 2 to view current chain: ")
+		reader := bufio.NewScanner(os.Stdin)
+		reader.Scan()
+		option := reader.Text()
 
-		// if option == "2" {
-		// 	fmt.Print(node.NodeChainToString())
-		// } else if option == "1" {
-		// 	fmt.Println("What would you like to send?: ")
-		// 	reader2 := bufio.NewScanner(os.Stdin)
-		// 	reader2.Scan()
-		// 	data := reader.Text()
-		// 	byteData := make([]byte, len(data))
+		if option == "2" {
+			fmt.Print(node.NodeChainToString())
+		} else if option == "1" {
+			fmt.Println("What would you like to send?: ")
+			reader2 := bufio.NewScanner(os.Stdin)
+			reader2.Scan()
+			data := reader.Text()
+			byteData := make([]byte, len(data))
 
-		// 	for i := 0; i < len(data); i++ {
-		// 		byteData[i] = data[i]
-		// 	}
+			for i := 0; i < len(data); i++ {
+				byteData[i] = data[i]
+			}
 
-		// transaction := blockchain.Transaction{
-		// 	Sender:    []byte("s1"),
-		// 	Recipient: []byte("r1"),
-		// 	Timestamp: time.Now().UnixNano(),
-		// 	Data:      byteData,
-		// }
-		// currentBlock.AddTransaction(transaction)
+		transaction := blockchain.Transaction{
+			Sender:    []byte("s1"),
+			Recipient: []byte("r1"),
+			Timestamp: time.Now().UnixNano(),
+			Data:      byteData,
+		}
+		currentBlock.AddTransaction(transaction)
 
-		// user input ends here
 	}
 }
-*/

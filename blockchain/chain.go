@@ -2,11 +2,12 @@ package blockchain
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 	"time"
-	"errors"
 
 	"github.com/cbergoon/merkletree"
 )
@@ -70,9 +71,7 @@ func (blockChain *BlockChain) AddBlock(block *Block) error {
 	blockHash := block.GetParentBlockHash()
 
 	if len(block.GetDataList()) < GetMax() {
-		fmt.Println()
-		log.Println("Block is not full, cannot add to chain.")
-		fmt.Println()
+		fmt.Println("Block is not full, cannot add to chain.")
 
 		return errors.New("Block is not full, cannot add to chain")
 
@@ -82,16 +81,56 @@ func (blockChain *BlockChain) AddBlock(block *Block) error {
 		blockChain.root = block
 
 		blockChain.chain.RebuildTreeWith(blockChain.blockList) // rebuilds chain and sets blockChain.chain to the new chain
+
+		fmt.Println("Block " + strconv.Itoa(len(blockChain.blockList))+ " added to chain.")
+
 	} else {
-		fmt.Println()
-		log.Println("Block hash does not match root hash, or block hash does not exist.")
-		fmt.Println()
+		fmt.Println("Block hash does not match root hash, or block hash does not exist.")
 
 		return errors.New("Block hash does not match root hash, or block hash does not exist")
 	}
 
 	return nil
 }
+
+func (blockChain *BlockChain) AddConsensusBlock(block *Block, correctHash []byte) error {
+	blockChain.wg.Add(1)
+	go func() {
+		defer blockChain.wg.Done()
+
+		block.Mine()
+	}()
+	blockChain.wg.Wait()
+
+	rootHash := blockChain.root.GetHash()
+	blockParentHash := block.GetParentBlockHash()
+
+	if !bytes.Equal(block.GetHash(), correctHash){
+		fmt.Println("Block hash does not match consensus hash.")
+
+		return errors.New("consensus not reached")
+	} else if len(block.GetDataList()) < GetMax() {
+		fmt.Println("Block is not full, cannot add to chain.")
+
+		return errors.New("block is not full")
+
+		// blockHash exists         parentHash Exists      rootHash == parentBlockHash
+	} else if block.GetHash() != nil && rootHash != nil && bytes.Equal(blockParentHash, rootHash) {
+		blockChain.blockList = append(blockChain.blockList, block)
+		blockChain.root = block
+
+		blockChain.chain.RebuildTreeWith(blockChain.blockList) // rebuilds chain and sets blockChain.chain to the new chain
+
+		fmt.Println("Block " + strconv.Itoa(len(blockChain.blockList))+ " added to chain.")
+	} else {
+		fmt.Println("Block hash does not match root hash, or block hash does not exist.")
+
+		return errors.New("block hash does not match root hash or does not exist")
+	}
+
+	return nil
+}
+
 
 // Asycnchronously runs the verification of the blockchain every 300 milliseconds.
 // This is to ensure no malicious blocks are added to the chain.
