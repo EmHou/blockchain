@@ -49,7 +49,6 @@ func main() {
 		option := reader.Text()
 
 		if option == "2" {
-			//invalid memory address
 			fmt.Println("\n" + chain.String())
 
 		} else if option == "1" {
