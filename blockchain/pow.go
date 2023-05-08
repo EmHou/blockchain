@@ -52,7 +52,7 @@ func (block *Block) BlockDataToBytes() []byte {
 			block.header.parentBlockHash,
 			block.GetData().Root.Tree.MerkleRoot(), // root hash of merkle tree
 			ToHex(int64(block.GetNonce())),
-			ToHex(int64(difficulty)),
+			ToHex(int64(block.GetTimestamp())),
 		},
 		[]byte{},
 	)
