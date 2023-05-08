@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"net/rpc"
@@ -11,12 +12,11 @@ import (
 	"time"
 
 	//blockchain "github.com/Lqvendar/blockchain/blockchain"
+	"github.com/Lqvendar/blockchain/blockchain"
 	connection "github.com/Lqvendar/blockchain/node"
 )
 
-
 func main() {
-
 	arguments := os.Args
 
 	myID, err := strconv.Atoi(arguments[1])
@@ -32,38 +32,69 @@ func main() {
 	}
 
 	node.ReadClusterConfig("nodes.txt")
-
 	// nodes connect now
 	node.ConnectNodes()
 
+	chain := blockchain.NewBlockChain()
+	currentBlock := blockchain.MakeBlock(chain.GetRoot().GetHash())
+
 	time.Sleep(8 * time.Second)
 
+	fmt.Println("\n--- Welcome to Blockchain! ---\n")
+
 	for {
-		fmt.Print("Type 1 to send data, type 2 to view current chain: ")
+		fmt.Printf("-----\n\nWhat would you like to do?\n\n1. Add a transaction\n2. View current chain\n\n-----\n\nType option: ")
 		reader := bufio.NewScanner(os.Stdin)
 		reader.Scan()
 		option := reader.Text()
 
 		if option == "2" {
-			fmt.Print(node.NodeChainToString())
+			//invalid memory address
+			fmt.Println("\n" + chain.String())
+
 		} else if option == "1" {
-			fmt.Println("What would you like to send?: ")
+			fmt.Printf("\nType transaction data: ")
 			reader2 := bufio.NewScanner(os.Stdin)
 			reader2.Scan()
 			data := reader.Text()
-			byteData := make([]byte, len(data))
 
-			for i := 0; i < len(data); i++ {
-				byteData[i] = data[i]
+			if data == "" {
+				fmt.Println("\n\nData cannot be empty!")
+			} else {
+				byteData := make([]byte, len(data))
+
+				for i := 0; i < len(data); i++ {
+					byteData[i] = data[i]
+				}
+
+				transaction := blockchain.Transaction{
+					Sender:    []byte("s" + strconv.Itoa(myID)),
+					Recipient: []byte("r" + strconv.Itoa(myID)),
+					Timestamp: time.Now().UnixNano(),
+					Data:      byteData,
+				}
+
+				currentBlock.AddTransaction(transaction)
+				fmt.Println("\nTransaction added!\n")
 			}
 
-		transaction := blockchain.Transaction{
-			Sender:    []byte("s1"),
-			Recipient: []byte("r1"),
-			Timestamp: time.Now().UnixNano(),
-			Data:      byteData,
+		} else {
+			fmt.Println("Invalid input! Please select one of the valid options.\n")
 		}
-		currentBlock.AddTransaction(transaction)
 
+		// if block is full
+		if len(currentBlock.GetDataList()) == blockchain.GetMax() {
+			fmt.Printf("\n\n-----\n\nThe local block has been filled!")
+
+			currentBlock.Mine()
+			chain.AddBlock(currentBlock)
+
+			fmt.Printf("Sending block to all nodes...\n\n-----\n\n")
+			node.SendBlock(currentBlock)
+
+			// clear current block
+			currentBlock = blockchain.MakeBlock(chain.GetRoot().GetHash())
+
+		}
 	}
 }
