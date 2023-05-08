@@ -43,15 +43,12 @@ func main() {
 	fmt.Println("\n--- Welcome to Blockchain! ---\n")
 
 	for {
-		fmt.Printf("-----\n\nWhat would you like to do?\n\n1. Add a transaction\n2. View current chain\n\n-----\n\nType option: ")
+		fmt.Printf("-----\n\nWhat would you like to do?\n\n1. Add a transaction\n\n-----\n\nType option: ")
 		reader := bufio.NewScanner(os.Stdin)
 		reader.Scan()
 		option := reader.Text()
 
-		if option == "2" {
-			fmt.Println("\n" + chain.String())
-
-		} else if option == "1" {
+		if option == "1" {
 			fmt.Printf("\nType transaction data: ")
 			reader2 := bufio.NewScanner(os.Stdin)
 			reader2.Scan()
