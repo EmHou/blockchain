@@ -25,6 +25,7 @@ type Transaction struct {
 	Data      []byte
 }
 
+// Turns everything in the Transaction struct into a byte array
 func (transaction *Transaction) TransactionDataToBytes() []byte {
 	data := bytes.Join(
 		[][]byte{
@@ -39,6 +40,8 @@ func (transaction *Transaction) TransactionDataToBytes() []byte {
 	return data
 }
 
+// Calculates the hash of the transaction
+// Implements the merkletree.Content interface
 func (transaction Transaction) CalculateHash() ([]byte, error) {
 	hash := sha256.New()
 	data := transaction.TransactionDataToBytes()
@@ -50,6 +53,7 @@ func (transaction Transaction) CalculateHash() ([]byte, error) {
 	return hash.Sum(nil), nil
 }
 
+// Implements the merkletree.Content interface
 func (transaction Transaction) Equals(other merkletree.Content) (bool, error) {
 	ifEquals := false
 

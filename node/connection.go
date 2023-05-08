@@ -47,6 +47,9 @@ type BlockReply struct {
 	Success bool
 }
 
+// RPC that allows a node to receive a block from another node
+// Receives the block data from another node and adds it to its own chain
+// If the block is valid, it will add it to its own chain
 func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 	
 	// Needs to intialise a new blockchain if it doesn't have one
@@ -101,10 +104,12 @@ func (node *Node) SendBlock(block *blockchain.Block) {
 	}
 }
 
+// Returns the local chain as a string
 func (node *Node) NodeChainToString() string {
 	return node.localChain.String()
 }
 
+// MakeNode creates a new node with the given ID
 func MakeNode(i int) *Node {
 	node := new(Node)
 	node.ID = i
@@ -113,6 +118,8 @@ func MakeNode(i int) *Node {
 	return node
 }
 
+// Connects to all the peer nodes listed in the config file
+// Allows for asynchronous connecting
 func (node *Node) ConnectNodes() error {
 	rpc.HandleHTTP()
 
@@ -144,6 +151,7 @@ func (node *Node) ConnectNodes() error {
 	return nil
 }
 
+// Reads the config file and stores the addresses of the peer nodes in the node struct
 func (node *Node) ReadClusterConfig(filename string) {
 	nodeIndex := node.ID
 

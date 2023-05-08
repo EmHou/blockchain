@@ -144,15 +144,3 @@ func (block *Block) TestPrintMine() (int, [32]byte) {
 
 	return nonce, hash
 }
-
-/*
-// Might not need to use, have "VerifyContent" in MerkleTree package
-func (block *Block) Validate() bool {
-    var intHash big.Int
-	hash, _ := block.CalculateHash()
-
-    intHash.SetBytes(hash[:])
-
-    return intHash.Cmp(block.GetTarget()) == -1
-}
-*/

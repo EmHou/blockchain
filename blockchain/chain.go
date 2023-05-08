@@ -93,6 +93,7 @@ func (blockChain *BlockChain) AddBlock(block *Block) error {
 	return nil
 }
 
+// Adds block to the blockchain when running consensus.
 func (blockChain *BlockChain) AddConsensusBlock(block *Block, correctHash []byte) error {
 	blockChain.wg.Add(1)
 	go func() {

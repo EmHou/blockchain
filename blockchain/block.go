@@ -138,6 +138,7 @@ func MakeBlock(pBlockHash []byte) *Block {
 	return block
 }
 
+// When adding block for conesnsus (adding block data from RPC)
 func MakeAddBlock(time int64, pBlockHash []byte, nonc uint64, dl []merkletree.Content) *Block {
 	header := &BlockHeader{
 		timestamp:       time,
@@ -218,6 +219,7 @@ func (block *Block) SetBlockParentHash(Hash []byte) {
 	block.header.parentBlockHash = Hash
 }
 
+// String representation of Block
 func (block Block) String() string {
 	str := "**Block**\n"
 	str += block.header.String()
@@ -227,6 +229,7 @@ func (block Block) String() string {
 	return str
 }
 
+// String representation of BlockHeader
 func (Header *BlockHeader) String() string {
 	str := "Timestamp: " + strconv.FormatInt(Header.timestamp, 10) + "\n"
 	str += "Parent Block Hash: " + hex.EncodeToString(Header.parentBlockHash) + "\n"
