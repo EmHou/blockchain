@@ -152,8 +152,10 @@ func MakeAddBlock(time int64, pBlockHash []byte, nonc uint64, dl []merkletree.Co
 	}
 
 	tree, err := merkletree.NewTree(dl)
+	// if it errors, it means that we are trying to add an empty block
+	// used in transaction RPCs
 	if err != nil {
-		log.Fatal(err)
+		tree = nil
 	}
 
 	block := &Block{

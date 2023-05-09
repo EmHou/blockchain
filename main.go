@@ -9,6 +9,7 @@ import (
 	"net/rpc"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
@@ -35,48 +36,62 @@ func main() {
 	// nodes connect now
 	node.ConnectNodes()
 
-	chain := blockchain.NewBlockChain()
+	node.LocalChain = blockchain.NewBlockChain()
 
-	time.Sleep(8 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	fmt.Println("\n--- Welcome to Blockchain! ---\n")
 
-	for {
+	continueLoop := true
+
+	for continueLoop {
+		var wg sync.WaitGroup
+
 		fmt.Printf("-----\n\nWhat would you like to do?\n\n1. Send a transaction\n\n2. View current block\n\n-----\n\nType option: ")
+		fmt.Println()
 		reader := bufio.NewScanner(os.Stdin)
 		reader.Scan()
 		option := reader.Text()
 
 		if option == "1" {
 			fmt.Println(">>> Type transaction data: ")
-			reader2 := bufio.NewScanner(os.Stdin)
-			reader2.Scan()
+			reader.Scan()
 			data := reader.Text()
 
 			if data == "" {
 				fmt.Println(">>> Data cannot be empty!")
 			} else {
-				fmt.Println(">>> Creating transaction!")
-				transaction := blockchain.MakeTransaction(node.GetSelfAddress(), "recipient", time.Now().UnixNano(), data)
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					fmt.Println(">>> Creating transaction!")
+					transaction := blockchain.MakeTransaction(node.GetSelfAddress(), "recipient", time.Now().UnixNano(), data)
 
-				// Check if block list length is 1 (empty besides genesis) and create block if so
-				if chain.GetBlockListLen() == 1 {
-					fmt.Println(">>> Creating first block!")
-					node.Block = blockchain.MakeBlock(chain.GetRoot().GetHash())
-					
-					node.Block.AddTransaction(*transaction, chain, node)
+					// Check if block list length is 1 (empty besides genesis) and create block if so
+					if node.LocalChain.GetBlockListLen() == 1 && node.Block == nil {
+						fmt.Println(">>> Creating main block!")
+						node.Block = blockchain.MakeBlock(node.LocalChain.GetRoot().GetHash())
+					}
 
-				} else { // Else, add and send transaction
-					node.Block.AddTransaction(*transaction, chain, node)
-					fmt.Println(">>> Added transaction to local chain!")
-					node.SendTransaction(*transaction)
+					node.Block.AddTransaction(*transaction, node.LocalChain, node)
+					hash, _ := transaction.CalculateHash()
+					fmt.Printf(">>> Added transaction to local chain! Hash: %x\n", hash)
 					fmt.Println(">>> Sent transaction to all nodes!")
-				}
+				}()
+
+				wg.Wait()
 			}
 		} else {
 			fmt.Println(">>> Invalid input! Please select one of the valid options.\n")
 		}
 
+		fmt.Println("Would you like to continue? (y/n)")
+		reader.Scan()
+		option = reader.Text()
+
+		if option == "n" {
+			continueLoop = false
+		}
 	}
 }
 

@@ -24,7 +24,7 @@ type Node struct {
 	peerNodes []ServerConnection
 
 	Block      *Block      // block that is being filled up with transactions has NOT been added to the chain yet
-	localChain *BlockChain // local copy of blockchain
+	LocalChain *BlockChain // local copy of blockchain
 
 	mutex sync.Mutex
 	wg    sync.WaitGroup
@@ -51,6 +51,8 @@ type TransactionArg struct {
 	Recipient []byte
 	Timestamp int64
 	Data      []byte
+
+	BlockTimestamp int64 // time that the block was created
 }
 
 type TransactionReply struct {
@@ -66,15 +68,6 @@ func (node *Node) GetSelfAddress() string {
 // If the block is valid, it will add it to its own chain
 func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 
-	// Needs to intialise a new blockchain if it doesn't have one
-	// with the same timestamp as the genesis block
-	if node.localChain == nil {
-		node.localChain = NewBlockChain()
-
-		reply.Success = true
-		return nil
-	}
-
 	if args.Nonce == 0 && args.DataList == nil {
 		// means that the block is empty and needs to be filled with transactions
 		addBlock := MakeAddBlock(args.Timestamp, args.Hash, args.Nonce, args.DataList)
@@ -84,7 +77,7 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 	} else {
 		// means that the block is full and needs to be added to the chain
 
-		parentBlockHash := node.localChain.GetRoot().GetParentBlockHash()
+		parentBlockHash := node.LocalChain.GetRoot().GetParentBlockHash()
 		addBlock := MakeAddBlock(args.Timestamp, parentBlockHash, args.Nonce, args.DataList)
 		// create a new Merkle Tree from the list of transactions
 
@@ -92,11 +85,13 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 		// Nonce should be correct
 		go func() {
 			defer node.wg.Done()
-			err := node.localChain.AddConsensusBlock(addBlock, args.Hash)
+			err := node.LocalChain.AddConsensusBlock(addBlock, args.Hash)
 
 			if err != nil {
+				fmt.Println("RPC >>> Error adding full block to chain")
 				reply.Success = false
 			} else {
+				fmt.Printf("RPC >>> Successfully added full block to chain. Hash: %x\n", addBlock.GetHash())
 				node.Block = nil // resets block if added to the chain successfully
 				reply.Success = true
 			}
@@ -121,9 +116,11 @@ func (node *Node) SendBlock(block *Block) {
 	for _, peer := range node.peerNodes {
 		if peer.rpcConnection != nil {
 
+			node.wg.Add(1)
 			go func(peer ServerConnection) {
-				var reply BlockReply
+				defer node.wg.Done()
 
+				var reply BlockReply
 				peer.rpcConnection.Call("Node.ReceiveBlock", arg, &reply)
 
 				if reply.Success {
@@ -132,6 +129,7 @@ func (node *Node) SendBlock(block *Block) {
 					fmt.Println("Response >>> block was not received successfully!")
 				}
 			}(peer)
+			node.wg.Wait()
 		}
 	}
 }
@@ -145,11 +143,22 @@ func (node *Node) ReceiveTransaction(args TransactionArg, reply *TransactionRepl
 		Timestamp: args.Timestamp,
 		Data:      args.Data,
 	}
+
+	// Needs to intialise a new blockchain if it doesn't have one
+	// with the same timestamp as the genesis block
+	if node.LocalChain.GetBlockListLen() == 1 && node.Block == nil {
+		fmt.Println(">>> Creating second block!")
+		node.Block = MakeAddBlock(args.BlockTimestamp, node.LocalChain.genesis.GetHash(), 0, nil)
+	}
+
 	err := node.Block.Add(*newTransaction)
 
 	if err != nil {
+		fmt.Println("RPC >>> Error adding transaction to block")
 		reply.Success = false
 	} else {
+		hash, _ := newTransaction.CalculateHash()
+		fmt.Printf("RPC >>> Successfully added transaction to block. Hash: %x\n", hash)
 		reply.Success = true
 	}
 
@@ -163,14 +172,18 @@ func (node *Node) SendTransaction(transaction Transaction) {
 		Recipient: transaction.Recipient,
 		Timestamp: transaction.Timestamp,
 		Data:      transaction.Data,
+
+		BlockTimestamp: node.Block.GetTimestamp(),
 	}
 
 	for _, peer := range node.peerNodes {
 		if peer.rpcConnection != nil {
 
+			node.wg.Add(1)
 			go func(peer ServerConnection) {
-				var reply TransactionReply
+				defer node.wg.Done()
 
+				var reply TransactionReply
 				peer.rpcConnection.Call("Node.ReceiveTransaction", arg, &reply)
 
 				if reply.Success {
@@ -179,13 +192,15 @@ func (node *Node) SendTransaction(transaction Transaction) {
 					fmt.Println("Response >>> transaction was not received successfully!")
 				}
 			}(peer)
+
+			node.wg.Wait()
 		}
 	}
 }
 
 // Returns the local chain as a string
 func (node *Node) NodeChainToString() string {
-	return node.localChain.String()
+	return node.LocalChain.String()
 }
 
 // MakeNode creates a new node with the given ID
