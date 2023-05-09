@@ -1,19 +1,18 @@
 package main
 
+/*
 import (
+
 	"fmt"
 	"log"
 	"net/rpc"
 	"os"
 	"strconv"
-	"time"
-	
-	connection "github.com/Lqvendar/blockchain/node"
-
-	//"sync"
+	//"time"
+	"sync"
 
 	blockchain "github.com/Lqvendar/blockchain/blockchain"
-	"github.com/cbergoon/merkletree"
+	//"github.com/cbergoon/merkletree"
 )
 
 var t = blockchain.Transaction{
@@ -62,6 +61,44 @@ var trans4 = blockchain.Transaction{
 	Data:      []byte("data4"),
 }
 
+/*
+func testConnection() {
+	arguments := os.Args
+
+	myID, err := strconv.Atoi(arguments[1])
+	node := blockchain.MakeNode(myID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = rpc.Register(node)
+	fmt.Println("Node " + strconv.Itoa(myID) + " up!")
+	if err != nil {
+		log.Fatal("error registering the RPCs\n", err)
+	}
+
+	node.ReadClusterConfig("nodes.txt")
+	// nodes connect now
+	node.ConnectNodes()
+	//time.Sleep(3 * time.Second)
+
+	// testing creation of a chain
+	chain := node.FirstBlockChain()
+
+
+}
+
+func main() {
+	testConnection()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	wg.Wait()
+}
+
+
+// DEPRECATED
+/*
 // Tests the getters of a block
 func testGetters() {
 	fmt.Println("Blockchain")
@@ -280,44 +317,6 @@ func testMining(difficulty int) {
 	testMineBlock.TestPrintMine()
 }
 
-func testConnection() {
-	arguments := os.Args
-
-	myID, err := strconv.Atoi(arguments[1])
-	node := connection.MakeNode(myID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = rpc.Register(node)
-	fmt.Println("Node " + strconv.Itoa(myID) + " up!")
-	if err != nil {
-		log.Fatal("error registering the RPCs\n", err)
-	}
-
-	node.ReadClusterConfig("nodes.txt")
-	// nodes connect now
-	node.ConnectNodes()
-	time.Sleep(3 * time.Second)
-
-	// testing creation of a chain
-	chain := blockchain.NewBlockChain()
-
-	// testing creation of a block
-	block := blockchain.MakeBlock(chain.GetRoot().GetHash())
-	block.AddTransaction(trans1)
-	block.AddTransaction(trans2)
-	block.AddTransaction(trans3)
-	block.AddTransaction(trans4)
-	block.AddTransaction(t)
-	block.AddTransaction(t2)
-	block.AddTransaction(t3) // comment and uncomment to test if there are enough transactions to add to chain
-
-
-	chain.AddBlock(block)
-	node.SendBlock(block)
-}
-
 /*
 // This is for the Blockchain presenation
 func main() {
@@ -379,16 +378,6 @@ t(&chain) // & refers to where the variable is located in memory
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go chain.RunVerification()
-	wg.Wait()
-}
-*/
-
-/*
-func main() {
-	testConnection()
-
-	var wg sync.WaitGroup
-	wg.Add(1)
 	wg.Wait()
 }
 */
