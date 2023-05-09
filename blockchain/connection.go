@@ -57,6 +57,10 @@ type TransactionReply struct {
 	Success bool
 }
 
+func (node *Node) GetSelfAddress() string {
+	return node.Self.address
+}
+
 // RPC that allows a node to receive a block from another node
 // Receives the block data from another node and adds it to its own chain
 // If the block is valid, it will add it to its own chain
@@ -71,7 +75,7 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 		return nil
 	}
 
-	if args.Nonce == 0 && args.DataList == nil{
+	if args.Nonce == 0 && args.DataList == nil {
 		// means that the block is empty and needs to be filled with transactions
 		addBlock := MakeAddBlock(args.Timestamp, args.Hash, args.Nonce, args.DataList)
 		node.block = addBlock
@@ -83,13 +87,13 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 		parentBlockHash := node.localChain.GetRoot().GetParentBlockHash()
 		addBlock := MakeAddBlock(args.Timestamp, parentBlockHash, args.Nonce, args.DataList)
 		// create a new Merkle Tree from the list of transactions
-	
+
 		node.wg.Add(1)
 		// Nonce should be correct
 		go func() {
 			defer node.wg.Done()
 			err := node.localChain.AddConsensusBlock(addBlock, args.Hash)
-	
+
 			if err != nil {
 				reply.Success = false
 			} else {
@@ -104,7 +108,6 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 
 	return nil
 }
-
 
 // Takes in a block and calls ReceiveBlock on all peer nodes, passing it as an argument.
 func (node *Node) SendBlock(block *Block) {
@@ -146,7 +149,7 @@ func (node *Node) ReceiveTransaction(args TransactionArg, reply *TransactionRepl
 
 	if err != nil {
 		reply.Success = false
-	}	else {
+	} else {
 		reply.Success = true
 	}
 

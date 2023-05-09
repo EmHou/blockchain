@@ -2,7 +2,6 @@
 
 package main
 
-/*
 import (
 	"bufio"
 	"fmt"
@@ -12,16 +11,16 @@ import (
 	"strconv"
 	"time"
 
-	//blockchain "github.com/Lqvendar/blockchain/blockchain"
-	"github.com/Lqvendar/blockchain/blockchain"
-	connection "github.com/Lqvendar/blockchain/node"
+	blockchain "github.com/Lqvendar/blockchain/blockchain"
+	//"github.com/Lqvendar/blockchain/blockchain"
+	// connection "github.com/Lqvendar/blockchain/node"
 )
 
 func main() {
 	arguments := os.Args
 
 	myID, err := strconv.Atoi(arguments[1])
-	node := connection.MakeNode(myID)
+	node := blockchain.MakeNode(myID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,62 +36,73 @@ func main() {
 	node.ConnectNodes()
 
 	chain := blockchain.NewBlockChain()
-	currentBlock := blockchain.MakeBlock(chain.GetRoot().GetHash())
+	currentBlock := new(blockchain.Block)
 
 	time.Sleep(8 * time.Second)
 
 	fmt.Println("\n--- Welcome to Blockchain! ---\n")
 
 	for {
-		fmt.Printf("-----\n\nWhat would you like to do?\n\n1. Add a transaction\n\n-----\n\nType option: ")
+		fmt.Printf("-----\n\nWhat would you like to do?\n\n1. Send a transaction\n\n2. View current block\n\n-----\n\nType option: ")
 		reader := bufio.NewScanner(os.Stdin)
 		reader.Scan()
 		option := reader.Text()
 
 		if option == "1" {
-			fmt.Printf("\nType transaction data: ")
+			fmt.Println(">>> Type transaction data: ")
 			reader2 := bufio.NewScanner(os.Stdin)
 			reader2.Scan()
 			data := reader.Text()
 
 			if data == "" {
-				fmt.Println("\n\nData cannot be empty!")
+				fmt.Println(">>> Data cannot be empty!")
 			} else {
-				byteData := make([]byte, len(data))
+				fmt.Println(">>> Creating transaction!")
+				transaction := blockchain.MakeTransaction(node.GetSelfAddress(), "recipient", time.Now().UnixNano(), data)
 
-				for i := 0; i < len(data); i++ {
-					byteData[i] = data[i]
+				// Check if block list length is 1 (empty besides genesis) and create block if so
+				if chain.GetBlockListLen() == 1 {
+					fmt.Println(">>> Creating first block!")
+					currentBlock = blockchain.MakeBlock(chain.GetRoot().GetHash())
+
+				} else { // Else, add and send transaction
+					currentBlock.AddTransaction(*transaction, chain, node)
+					fmt.Println(">>> Added transaction to local chain!")
+					node.SendTransaction(*transaction)
+					fmt.Println(">>> Sent transaction to all nodes!")
 				}
-
-				transaction := blockchain.Transaction{
-					Sender:    []byte("s" + strconv.Itoa(myID)),
-					Recipient: []byte("r" + strconv.Itoa(myID)),
-					Timestamp: time.Now().UnixNano(),
-					Data:      byteData,
-				}
-
-				currentBlock.AddTransaction(transaction)
-				fmt.Println("\nTransaction added!\n")
 			}
-
 		} else {
-			fmt.Println("Invalid input! Please select one of the valid options.\n")
+			fmt.Println(">>> Invalid input! Please select one of the valid options.\n")
 		}
 
 		// if block is full
-		if len(currentBlock.GetDataList()) == blockchain.GetMax() {
-			fmt.Printf("\n\n-----\n\nThe local block has been filled!")
+		// if len(currentBlock.GetDataList()) == blockchain.GetMax() {
 
-			currentBlock.Mine()
-			chain.AddBlock(currentBlock)
+		// 	fmt.Printf("\n\n-----\n\nThe local block has been filled!")
 
-			fmt.Printf("Sending block to all nodes...\n\n-----\n\n")
-			node.SendBlock(currentBlock)
+		// 	currentBlock.Mine()
+		// 	chain.AddBlock(currentBlock)
 
-			// clear current block
-			currentBlock = blockchain.MakeBlock(chain.GetRoot().GetHash())
+		// 	fmt.Printf("Sending block to all nodes...\n\n-----\n\n")
+		// 	node.SendBlock(currentBlock)
 
-		}
+		// 	// clear current block
+		// 	currentBlock = blockchain.MakeBlock(chain.GetRoot().GetHash())
+
+		// }
 	}
 }
-*/
+
+// byteData := make([]byte, len(data))
+
+// for i := 0; i < len(data); i++ {
+// 	byteData[i] = data[i]
+// }
+
+// transaction := blockchain.Transaction{
+// 	Sender:    []byte("s" + strconv.Itoa(myID)),
+// 	Recipient: []byte("r" + strconv.Itoa(myID)),
+// 	Timestamp: time.Now().UnixNano(),
+// 	Data:      byteData,
+// }

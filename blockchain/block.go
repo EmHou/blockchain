@@ -3,13 +3,13 @@ package blockchain
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
 	"strconv"
 	"sync"
 	"time"
-	"errors"
 
 	"github.com/cbergoon/merkletree"
 )
