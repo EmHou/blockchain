@@ -36,7 +36,6 @@ func main() {
 	node.ConnectNodes()
 
 	chain := blockchain.NewBlockChain()
-	currentBlock := new(blockchain.Block)
 
 	time.Sleep(8 * time.Second)
 
@@ -63,7 +62,8 @@ func main() {
 				// Check if block list length is 1 (empty besides genesis) and create block if so
 				if chain.GetBlockListLen() == 1 {
 					fmt.Println(">>> Creating first block!")
-					currentBlock = blockchain.MakeBlock(chain.GetRoot().GetHash())
+					currentBlock := blockchain.MakeBlock(chain.GetRoot().GetHash())
+					currentBlock.AddTransaction(*transaction, chain, node)
 
 				} else { // Else, add and send transaction
 					currentBlock.AddTransaction(*transaction, chain, node)
