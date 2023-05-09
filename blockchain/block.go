@@ -7,7 +7,9 @@ import (
 	"log"
 	"math/big"
 	"strconv"
+	"sync"
 	"time"
+	"errors"
 
 	"github.com/cbergoon/merkletree"
 )
@@ -25,6 +27,8 @@ type Block struct {
 	data     *merkletree.MerkleTree
 	pow      *ProofOfWork
 	dataList []merkletree.Content
+
+	wg sync.WaitGroup
 }
 
 // BlockHeader contains metaDataof the block.
@@ -154,7 +158,7 @@ func MakeAddBlock(time int64, pBlockHash []byte, nonc uint64, dl []merkletree.Co
 
 	block := &Block{
 		header:   *header,
-		data: tree,
+		data:     tree,
 		dataList: dl,
 		pow:      NewPOW(),
 	}
@@ -176,7 +180,7 @@ func MakeGenesisBlock() *Block {
 			Data:      []byte("init"),
 		}
 
-		genesis.AddTransaction(emptyTransaction)
+		genesis.Add(emptyTransaction)
 	}
 	genesis.Mine()
 	fmt.Println("Genesis block created!")
@@ -184,14 +188,13 @@ func MakeGenesisBlock() *Block {
 	return genesis
 }
 
-// AddTransaction is of type Block and takes paramater of type Transaction.
-// Checks if the block is full (var max transactions, arbitrarily set) and if it is, prints error message.
-// If the transaction MerkleTree is empty, creates a new Merkle Tree with the transaction.
-// If it is not empty, rebuilds the Merkle Tree with the new transaction.
-func (block *Block) AddTransaction(transaction Transaction) {
+// NOT USED for adding the transactions that it creates by itself
+// Used in RPCs
+// internal function
+func (block *Block) Add(transaction Transaction) error {
 	if len(block.dataList) >= max {
 		fmt.Println("Block is full, cannot add more transactions")
-
+		return errors.New("Block is full, cannot add more transactions")
 	} else {
 		block.dataList = append(block.dataList, transaction)
 
@@ -210,6 +213,53 @@ func (block *Block) AddTransaction(transaction Transaction) {
 		}
 	}
 
+	return nil
+}
+
+// AddTransaction is of type Block and takes paramater of type Transaction.
+// Checks if the block is full (var max transactions, arbitrarily set) and if it is, prints error message.
+// If the transaction MerkleTree is empty, creates a new Merkle Tree with the transaction.
+// If it is not empty, rebuilds the Merkle Tree with the new transaction.
+func (block *Block) AddTransaction(transaction Transaction, chain *BlockChain, node *Node) {
+	if len(block.dataList) > max { // Should never run this, this is only here just in case
+		fmt.Println("Block is full, cannot add more transactions")
+
+	} else if len(block.dataList) == max-1 {
+		block.Add(transaction) // still needs to add the transaction
+		fmt.Println("Block is full, attempting to mine and add block to chain")
+
+		block.wg.Add(1)
+		go func() {
+			defer block.wg.Done()
+			chain.AddBlock(block)
+		}()
+		block.wg.Wait()
+		fmt.Println(">>> Succesfully added block to chain")
+
+		block.wg.Add(1)
+		go func() {
+			defer block.wg.Done()
+			node.SendBlock(block)
+		}()
+		block.wg.Wait()
+		fmt.Println(">>> Succesfully sent block (to be added to chain) to nodes")
+
+		newBlockToSend := MakeBlock(block.GetHash())
+		newBlockToSend.wg.Add(1)
+		go func() {
+			defer newBlockToSend.wg.Done()
+			node.SendBlock(newBlockToSend)
+		}()
+		newBlockToSend.wg.Wait()
+		fmt.Println(">>> Succesfully sent empty block to nodes")
+
+	} else {
+		fmt.Println("Adding transaction to block")
+		block.Add(transaction)
+
+		// sending transactions to all of the nodes
+		node.SendTransaction(transaction)
+	}
 }
 
 // Function used to set parent Hash

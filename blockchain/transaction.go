@@ -25,6 +25,19 @@ type Transaction struct {
 	Data      []byte
 }
 
+// Creates a new transaction on in its own block, not in other nodes' blocks
+// For command line interface user input
+func MakeTransaction(sender string, recipient string, timestamp int64, data string) *Transaction {
+	transaction := &Transaction{
+		Sender:    []byte(sender),
+		Recipient: []byte(recipient),
+		Timestamp: timestamp,
+		Data:      []byte(data),
+	}
+
+	return transaction
+}
+
 // Turns everything in the Transaction struct into a byte array
 func (transaction *Transaction) TransactionDataToBytes() []byte {
 	data := bytes.Join(
