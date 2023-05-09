@@ -170,7 +170,7 @@ func MakeAddBlock(time int64, pBlockHash []byte, nonc uint64, dl []merkletree.Co
 // Has no parent block, so ParentBlockHash is empty (empty byte array)
 // time should be in UnixNano
 func MakeGenesisBlock() *Block {
-	genesis := MakeBlock([]byte{})
+	genesis := MakeBlock([]byte{}) // just the genesis block, so it does not have to be set into node.Block
 
 	for i := 0; i < max; i++ {
 		emptyTransaction := Transaction{
@@ -244,13 +244,13 @@ func (block *Block) AddTransaction(transaction Transaction, chain *BlockChain, n
 		block.wg.Wait()
 		fmt.Println(">>> Succesfully sent block (to be added to chain) to nodes")
 
-		newBlockToSend := MakeBlock(block.GetHash())
-		newBlockToSend.wg.Add(1)
+		node.Block = MakeBlock(block.GetHash())
+		node.Block.wg.Add(1)
 		go func() {
-			defer newBlockToSend.wg.Done()
-			node.SendBlock(newBlockToSend)
+			defer node.Block.wg.Done()
+			node.SendBlock(node.Block)
 		}()
-		newBlockToSend.wg.Wait()
+		node.Block.wg.Wait()
 		fmt.Println(">>> Succesfully sent empty block to nodes")
 
 	} else {

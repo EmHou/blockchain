@@ -62,11 +62,12 @@ func main() {
 				// Check if block list length is 1 (empty besides genesis) and create block if so
 				if chain.GetBlockListLen() == 1 {
 					fmt.Println(">>> Creating first block!")
-					currentBlock := blockchain.MakeBlock(chain.GetRoot().GetHash())
-					currentBlock.AddTransaction(*transaction, chain, node)
+					node.Block = blockchain.MakeBlock(chain.GetRoot().GetHash())
+					
+					node.Block.AddTransaction(*transaction, chain, node)
 
 				} else { // Else, add and send transaction
-					currentBlock.AddTransaction(*transaction, chain, node)
+					node.Block.AddTransaction(*transaction, chain, node)
 					fmt.Println(">>> Added transaction to local chain!")
 					node.SendTransaction(*transaction)
 					fmt.Println(">>> Sent transaction to all nodes!")
@@ -76,21 +77,6 @@ func main() {
 			fmt.Println(">>> Invalid input! Please select one of the valid options.\n")
 		}
 
-		// if block is full
-		// if len(currentBlock.GetDataList()) == blockchain.GetMax() {
-
-		// 	fmt.Printf("\n\n-----\n\nThe local block has been filled!")
-
-		// 	currentBlock.Mine()
-		// 	chain.AddBlock(currentBlock)
-
-		// 	fmt.Printf("Sending block to all nodes...\n\n-----\n\n")
-		// 	node.SendBlock(currentBlock)
-
-		// 	// clear current block
-		// 	currentBlock = blockchain.MakeBlock(chain.GetRoot().GetHash())
-
-		// }
 	}
 }
 

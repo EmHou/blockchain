@@ -23,7 +23,7 @@ type Node struct {
 	Self      ServerConnection
 	peerNodes []ServerConnection
 
-	block      *Block      // block that is being filled up with transactions has NOT been added to the chain yet
+	Block      *Block      // block that is being filled up with transactions has NOT been added to the chain yet
 	localChain *BlockChain // local copy of blockchain
 
 	mutex sync.Mutex
@@ -78,7 +78,7 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 	if args.Nonce == 0 && args.DataList == nil {
 		// means that the block is empty and needs to be filled with transactions
 		addBlock := MakeAddBlock(args.Timestamp, args.Hash, args.Nonce, args.DataList)
-		node.block = addBlock
+		node.Block = addBlock
 		fmt.Println(">>> Saving empty block")
 
 	} else {
@@ -97,7 +97,7 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 			if err != nil {
 				reply.Success = false
 			} else {
-				node.block = nil // resets block if added to the chain successfully
+				node.Block = nil // resets block if added to the chain successfully
 				reply.Success = true
 			}
 		}()
@@ -145,7 +145,7 @@ func (node *Node) ReceiveTransaction(args TransactionArg, reply *TransactionRepl
 		Timestamp: args.Timestamp,
 		Data:      args.Data,
 	}
-	err := node.block.Add(*newTransaction)
+	err := node.Block.Add(*newTransaction)
 
 	if err != nil {
 		reply.Success = false
