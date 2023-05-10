@@ -67,7 +67,7 @@ func (node *Node) GetSelfAddress() string {
 // Receives the block data from another node and adds it to its own chain
 // If the block is valid, it will add it to its own chain
 func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
-
+	fmt.Println("--------------------------------------")
 	if args.Nonce == 0 && args.DataList == nil {
 		// means that the block is empty and needs to be filled with transactions
 		addBlock := MakeAddBlock(args.Timestamp, args.Hash, args.Nonce, args.DataList)
@@ -100,7 +100,7 @@ func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 
 		fmt.Println("RPC >>> Successfully added full block to chain")
 	}
-
+	fmt.Print("-----\n\nWhat would you like to do?\n\n1. Send a transaction\n2. View hash of local chain\n\n-----\n\nType option: \n")
 	return nil
 }
 
@@ -137,6 +137,7 @@ func (node *Node) SendBlock(block *Block) {
 // RPC that allows a node to receive a transaction from another node
 // Receives the transaction data from another node and adds it to its own block
 func (node *Node) ReceiveTransaction(args TransactionArg, reply *TransactionReply) error {
+	fmt.Println("--------------------------------------")
 	newTransaction := &Transaction{
 		Sender:    args.Sender,
 		Recipient: args.Recipient,
@@ -161,6 +162,7 @@ func (node *Node) ReceiveTransaction(args TransactionArg, reply *TransactionRepl
 		fmt.Printf("RPC >>> Successfully added transaction to block. Hash: %x\n", hash)
 		reply.Success = true
 	}
+	fmt.Print("--------------------------------------\n\nWhat would you like to do?\n\n1. Send a transaction\n2. View hash of local chain\n\n-----\n\nType option: \n")
 
 	return nil
 }

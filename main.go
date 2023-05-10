@@ -46,8 +46,8 @@ func main() {
 
 	for continueLoop {
 		var wg sync.WaitGroup
-
-		fmt.Print("-----\n\nWhat would you like to do?\n\n1. Send a transaction\n2. View hash of local chain\n\n-----\n\nType option: \n")
+		
+		fmt.Print("--------------------------------------\n\nWhat would you like to do?\n\n1. Send a transaction\n2. View hash of local chain\n\n-----\n\nType option: \n")
 		reader := bufio.NewScanner(os.Stdin)
 		reader.Scan()
 		option := reader.Text()
@@ -95,6 +95,7 @@ func main() {
 			fmt.Println()
 		}
 
+		fmt.Println("--------------------------------------")
 		fmt.Println("Would you like to continue? (y/n): ")
 		reader.Scan()
 		option = reader.Text()
