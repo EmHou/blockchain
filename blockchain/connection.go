@@ -145,8 +145,8 @@ func (node *Node) ReceiveTransaction(args TransactionArg, reply *TransactionRepl
 		Data:      args.Data,
 	}
 
-	// Needs to intialise a new blockchain if it doesn't have one
-	// with the same timestamp as the genesis block
+	// Needs to intialise a new block if it doesn't have one
+	// with the same timestamp as the sent block
 	if node.LocalChain.GetBlockListLen() == 1 && node.Block == nil {
 		fmt.Println(">>> Creating second block!")
 		node.Block = MakeAddBlock(args.BlockTimestamp, node.LocalChain.genesis.GetHash(), 0, nil)
