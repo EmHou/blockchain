@@ -69,7 +69,7 @@ func (node *Node) GetSelfAddress() string {
 func (node *Node) ReceiveBlock(args BlockArg, reply *BlockReply) error {
 	fmt.Println("--------------------------------------")
 	if args.Nonce == 0 && args.DataList == nil {
-		// means that the block is empty and needs to be filled with transactions
+		// means that empty block was sent 
 		addBlock := MakeAddBlock(args.Timestamp, args.Hash, args.Nonce, args.DataList)
 		node.Block = addBlock
 		fmt.Println(">>> Saving empty block")
