@@ -89,7 +89,8 @@ func main() {
 				wg.Wait()
 			}
 		} else if option == "2" {
-			fmt.Println("Current chain hash: ", node.LocalChain.GetRoot().GetHash())
+			fmt.Printf("Current chain hash: %x", node.LocalChain.GetRoot().GetHash())
+			fmt.Println()
 		} else {
 			fmt.Println(">>> Invalid input! Please select one of the valid options.")
 			fmt.Println()
